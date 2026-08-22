@@ -1,4 +1,3 @@
-import { SiteHeader } from '@/components/landing/site-header'
 import { Hero } from '@/components/landing/hero'
 import { HowItWorks } from '@/components/landing/how-it-works'
 import { Modules } from '@/components/landing/modules'
@@ -11,7 +10,6 @@ import { CtaFooter } from '@/components/landing/cta-footer'
 export default function Page() {
   return (
     <div className="min-h-screen bg-background">
-      <SiteHeader />
       <main>
         <Hero />
         <HowItWorks />

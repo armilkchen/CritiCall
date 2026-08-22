@@ -1,5 +1,4 @@
 import { Check } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 
 const freeFeatures = [
   'Free 8–10 minute pressure assessment',
@@ -93,7 +92,7 @@ export function Pricing() {
                 </li>
               ))}
             </ul>
-            <Button className="mt-7 h-11 shadow-sm">Unlock full training</Button>
+            <a href="/train" className="mt-7 inline-flex h-11 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/80">Open training preview</a>
           </div>
         </div>
       </div>

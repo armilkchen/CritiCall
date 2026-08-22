@@ -1,90 +1,171 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
-import { ArrowLeft, ArrowRight, BellRing, Brain, Check, Keyboard, RotateCcw } from 'lucide-react'
+import { ArrowRight, BellRing, Brain, Check, FileText, Headphones, Keyboard, Play, TimerReset, Volume2 } from 'lucide-react'
+import { saveDrillResult, type DrillType } from '@/lib/progress'
+import {
+  generateCallSummaryScenario,
+  generateDataEntryScenario,
+  generateMemoryCode,
+  generatePressureScenario,
+  recordToAudioScript,
+  difficultySettings,
+  type CallSummaryScenario,
+  type DispatchService,
+  type RecordFields,
+  type TrainingDifficulty,
+} from '@/lib/generators/dispatcher-drills'
 
-type Drill = 'entry' | 'memory' | 'pressure'
-type RecordFields = { name: string; address: string; phone: string; plate: string }
+type Drill = DrillType
+type Fields = RecordFields
+type SimulationStage = 'intro' | 'entry' | 'memory-show' | 'memory-answer' | 'audio' | 'summary' | 'pressure' | 'result'
 
-const records: RecordFields[] = [
-  { name: 'Avery Collins', address: '710 North Harbor Road', phone: '555-638-1904', plate: '8JQ41L' },
-  { name: 'Theo Bennett', address: '62 Maple Court', phone: '555-204-7718', plate: '4VX92P' },
-  { name: 'Nora Patel', address: '3916 East Willow Avenue', phone: '555-816-0432', plate: '6RB73C' },
-]
-
-const pressureRecord: RecordFields = { name: 'Keira Lewis', address: '219 West Ridge Drive', phone: '555-391-6208', plate: '2MN84K' }
-const initialFields = (): RecordFields => ({ name: '', address: '', phone: '', plate: '' })
+const emptyFields = (): Fields => ({ name: '', address: '', phone: '', plate: '' })
 const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '')
+const services: DispatchService[] = ['Police', 'Fire', 'EMS', 'Utility']
 
-function score(answer: RecordFields, response: RecordFields) {
-  return Math.round((Object.keys(answer) as Array<keyof RecordFields>).reduce((total, key) => total + Number(normalize(answer[key]) === normalize(response[key])), 0) * 25)
-}
-
-const drillInfo = {
+const drillInfo: Record<Drill, { label: string; detail: string; icon: typeof Keyboard }> = {
   entry: { label: 'Data Entry', detail: 'Structured details · accuracy first', icon: Keyboard },
   memory: { label: 'Memory Recall', detail: 'Brief visual recall', icon: Brain },
+  audio: { label: 'Audio Data Entry', detail: 'Listen for exact details', icon: Headphones },
+  summary: { label: 'Call Summary', detail: 'Extract essential facts', icon: FileText },
   pressure: { label: 'Pressure Drill', detail: 'Interrupted data entry', icon: BellRing },
+  simulation: { label: 'Full Simulation', detail: 'Five mixed practice tasks', icon: TimerReset },
+}
+
+function fieldScore(answer: Fields, response: Fields) {
+  return Math.round((Object.keys(answer) as Array<keyof Fields>).reduce((total, key) => total + Number(normalize(answer[key]) === normalize(response[key])), 0) * 25)
+}
+
+function summaryScore(scenario: CallSummaryScenario, response: string) {
+  const answer = normalize(response)
+  return Math.round(scenario.facts.reduce((total, fact) => total + Number(fact.keywords.every((keyword) => answer.includes(normalize(keyword)))), 0) * (100 / scenario.facts.length))
 }
 
 export default function TrainPage() {
   const [drill, setDrill] = useState<Drill>('entry')
   const [round, setRound] = useState(0)
+  const [mounted, setMounted] = useState(false)
+  const [difficulty, setDifficulty] = useState<TrainingDifficulty>('normal')
+  const current = drillInfo[drill]
 
-  function selectDrill(next: Drill) {
-    setDrill(next)
-    setRound((value) => value + 1)
+  useEffect(() => {
+    const timer = window.setTimeout(() => setMounted(true), 0)
+    return () => window.clearTimeout(timer)
+  }, [])
+
+  function nextRound() { setRound((value) => value + 1) }
+  function selectDrill(next: Drill) { setDrill(next); nextRound() }
+  function selectDifficulty(next: TrainingDifficulty) { setDifficulty(next); nextRound() }
+
+  return <main className="min-h-screen bg-[#f4f6f8] text-slate-950"><div className="mx-auto grid max-w-6xl gap-6 px-4 py-7 sm:px-6 lg:grid-cols-[250px_1fr] lg:py-10"><aside className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm lg:h-fit"><p className="px-3 pb-3 pt-2 font-mono text-[.65rem] font-semibold uppercase tracking-[.16em] text-slate-500">Training library</p><div className="space-y-1">{(Object.keys(drillInfo) as Drill[]).map((key) => { const item = drillInfo[key]; const Icon = item.icon; return <button type="button" key={key} onClick={() => selectDrill(key)} className={`flex w-full items-start gap-3 rounded-lg px-3 py-3 text-left transition ${drill === key ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-slate-100'}`}><Icon className={`mt-0.5 size-4 shrink-0 ${drill === key ? 'text-blue-300' : 'text-blue-700'}`} /><span><span className="block text-sm font-semibold">{item.label}</span><span className={`mt-0.5 block text-xs leading-relaxed ${drill === key ? 'text-slate-400' : 'text-slate-500'}`}>{item.detail}</span></span></button> })}</div><div className="mx-3 mt-5 border-t border-slate-200 pt-4"><p className="pt-4 font-mono text-[.65rem] font-semibold uppercase tracking-[.16em] text-slate-500">Difficulty</p><div className="mt-2 grid grid-cols-3 gap-1">{(Object.keys(difficultySettings) as TrainingDifficulty[]).map((level) => <button key={level} type="button" onClick={() => selectDifficulty(level)} className={`h-9 rounded-md text-xs font-semibold transition ${difficulty === level ? 'bg-blue-700 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{difficultySettings[level].label}</button>)}</div><p className="mt-4 text-xs leading-relaxed text-slate-500">Every round is generated for this session and saved in this browser. Results are practice metrics, not official scores.</p></div></aside><section className="min-w-0 rounded-xl border border-slate-200 bg-white shadow-[0_20px_60px_-40px_rgba(15,23,42,.55)]"><div className="border-b border-slate-200 bg-[linear-gradient(120deg,#0f172a_0%,#172554_100%)] px-6 py-6 text-white sm:px-8"><p className="font-mono text-xs uppercase tracking-[.18em] text-blue-300">{current.label} · {difficultySettings[difficulty].label}</p><h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">{drill === 'simulation' ? 'Put the skills together.' : 'Train one ability at a time.'}</h1><p className="mt-2 text-sm leading-relaxed text-slate-300">{drill === 'simulation' ? 'A 20-minute mixed session combining data entry, memory, audio, summarization, and pressure.' : 'Repeat the round until precision feels automatic, then layer in the interruption.'}</p></div><div className="p-6 sm:p-8">{!mounted ? <div className="min-h-80 animate-pulse rounded-lg bg-slate-100" /> : <>{drill === 'entry' && <EntryRound key={round} difficulty={difficulty} onNext={nextRound} />}{drill === 'memory' && <MemoryRound key={round} difficulty={difficulty} onNext={nextRound} />}{drill === 'audio' && <AudioRound key={round} difficulty={difficulty} onNext={nextRound} />}{drill === 'summary' && <SummaryRound key={round} difficulty={difficulty} onNext={nextRound} />}{drill === 'pressure' && <PressureRound key={round} difficulty={difficulty} onNext={nextRound} />}{drill === 'simulation' && <TimedSimulationRound key={round} difficulty={difficulty} onNext={nextRound} />}</>}</div></section></div></main>
+}
+
+function DataFields({ value, onChange, disabled = false }: { value: Fields; onChange: (next: Fields) => void; disabled?: boolean }) {
+  return <div className="grid gap-4 sm:grid-cols-2">{([['name', 'Caller name'], ['address', 'Address'], ['phone', 'Phone'], ['plate', 'Plate']] as Array<[keyof Fields, string]>).map(([key, label]) => <label key={key}><span className="mb-1.5 block font-mono text-[.65rem] font-medium uppercase tracking-[.15em] text-slate-500">{label}</span><input disabled={disabled} value={value[key]} onChange={(event) => onChange({ ...value, [key]: event.target.value })} className="h-11 w-full rounded-md border border-slate-300 px-3 font-mono text-sm outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 disabled:bg-slate-100" /></label>)}</div>
+}
+
+function RecordCard({ record }: { record: Fields }) { return <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 font-mono text-sm leading-7 text-slate-800">CALLER: {record.name}<br />LOCATION: {record.address}<br />CALLBACK: {record.phone}<br />VEHICLE PLATE: {record.plate}</div> }
+
+function AudioPlayer({ script, rate = difficultySettings.normal.audioRate }: { script: string; rate?: number }) {
+  const [unavailable, setUnavailable] = useState(false)
+  const [playing, setPlaying] = useState(false)
+  function play() { if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) { setUnavailable(true); return }; window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(script); utterance.rate = rate; utterance.onstart = () => { setPlaying(true); setUnavailable(false) }; utterance.onend = () => setPlaying(false); utterance.onerror = () => { setPlaying(false); setUnavailable(true) }; window.speechSynthesis.speak(utterance) }
+  return <><button type="button" onClick={play} className="flex w-full items-center gap-4 rounded-lg bg-slate-950 p-5 text-left text-white transition hover:bg-slate-800"><span className="grid size-11 place-items-center rounded bg-blue-600">{playing ? <Volume2 className="size-5" /> : <Play className="size-5" />}</span><span><span className="block font-semibold">{playing ? 'Playing caller audio…' : 'Play caller audio'}</span><span className="mt-1 block font-mono text-xs uppercase tracking-wider text-slate-400">Replay available · normal pace</span></span></button>{unavailable && <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">Audio playback is unavailable in this browser. Try a supported browser before treating this as an audio-practice score.</p>}</>
+}
+
+function Result({ value, onNext, label = 'Accuracy' }: { value: number; onNext: () => void; label?: string }) { return <div className="mt-7 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4"><div><p className="font-mono text-[.65rem] font-semibold uppercase tracking-[.15em] text-emerald-700">Round complete</p><p className="mt-1 text-lg font-semibold text-slate-950">{label}: {value}%</p></div><button type="button" onClick={onNext} className="inline-flex h-10 items-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800">Next round <ArrowRight className="size-4" /></button></div> }
+function RoundButton({ label, onClick, disabled = false }: { label: string; onClick: () => void; disabled?: boolean }) { return <div className="mt-8 flex justify-end"><button type="button" disabled={disabled} onClick={onClick} className="inline-flex h-11 items-center gap-2 rounded-md bg-blue-700 px-5 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-slate-300">{label}<Check className="size-4" /></button></div> }
+
+function EntryRound({ onNext, difficulty }: { onNext: () => void; difficulty: TrainingDifficulty }) { const [record] = useState(() => generateDataEntryScenario(difficulty)); const [value, setValue] = useState(emptyFields); const [result, setResult] = useState<number | null>(null); function complete() { const next = fieldScore(record, value); setResult(next); saveDrillResult('entry', next, difficulty) }; return <><p className="text-sm leading-relaxed text-slate-600">Read the record, then enter the details without copying and pasting.</p><div className="mt-6"><RecordCard record={record} /></div><div className="mt-6"><DataFields value={value} onChange={setValue} disabled={result !== null} /></div>{result === null ? <RoundButton label="Score this round" onClick={complete} /> : <Result value={result} onNext={onNext} />}</> }
+
+function MemoryRound({ onNext, difficulty }: { onNext: () => void; difficulty: TrainingDifficulty }) { const [code] = useState(() => generateMemoryCode(difficulty)); const [visible, setVisible] = useState(true); const [answer, setAnswer] = useState(''); const [result, setResult] = useState<number | null>(null); useEffect(() => { const timer = window.setTimeout(() => setVisible(false), difficultySettings[difficulty].memoryDuration); return () => window.clearTimeout(timer) }, [difficulty]); function complete() { const next = normalize(answer) === normalize(code) ? 100 : 0; setResult(next); saveDrillResult('memory', next, difficulty) }; return <><p className="text-sm leading-relaxed text-slate-600">Memorize the code before it clears. No notes—just recall.</p><div className="mt-8 grid min-h-32 place-items-center rounded-lg border border-slate-200 bg-slate-50 px-5 text-center font-mono text-3xl font-bold tracking-[.24em] text-slate-950 sm:text-4xl">{visible ? code : '••••••'}</div>{!visible && <><input autoFocus value={answer} onChange={(event) => setAnswer(event.target.value.toUpperCase())} disabled={result !== null} maxLength={difficultySettings[difficulty].memoryLength} placeholder="ENTER CODE" className="mt-7 h-14 w-full rounded-md border border-slate-300 px-4 text-center font-mono text-xl font-semibold tracking-[.2em] outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10" />{result === null ? <RoundButton label="Score recall" onClick={complete} /> : <Result value={result} onNext={onNext} />}</>}</> }
+
+function AudioRound({ onNext, difficulty }: { onNext: () => void; difficulty: TrainingDifficulty }) { const [record] = useState(() => generateDataEntryScenario(difficulty)); const [value, setValue] = useState(emptyFields); const [result, setResult] = useState<number | null>(null); function complete() { const next = fieldScore(record, value); setResult(next); saveDrillResult('audio', next, difficulty) }; return <><p className="text-sm leading-relaxed text-slate-600">Play the caller audio, then capture the exact details. Replay is allowed while you are learning.</p><div className="mt-6"><AudioPlayer script={recordToAudioScript(record)} rate={difficultySettings[difficulty].audioRate} /></div><div className="mt-6"><DataFields value={value} onChange={setValue} disabled={result !== null} /></div>{result === null ? <RoundButton label="Score audio entry" onClick={complete} /> : <Result value={result} onNext={onNext} />}</> }
+
+function SummaryRound({ onNext, difficulty }: { onNext: () => void; difficulty: TrainingDifficulty }) { const [scenario] = useState(() => generateCallSummaryScenario(difficulty)); const [summary, setSummary] = useState(''); const [result, setResult] = useState<number | null>(null); function complete() { const next = summaryScore(scenario, summary); setResult(next); saveDrillResult('summary', next, difficulty) }; return <><p className="text-sm leading-relaxed text-slate-600">Write a concise call note with the incident, location, callback number, and vehicle plate.</p><div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-7 text-slate-800">{scenario.statement}</div><label className="mt-6 block"><span className="font-mono text-[.65rem] font-medium uppercase tracking-[.15em] text-slate-500">Your call note</span><textarea value={summary} disabled={result !== null} onChange={(event) => setSummary(event.target.value)} rows={6} placeholder="Write the essential facts in your own words…" className="mt-2 w-full rounded-md border border-slate-300 p-3 text-sm outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 disabled:bg-slate-100" /></label>{result === null ? <RoundButton label="Score call note" onClick={complete} /> : <Result value={result} onNext={onNext} label="Fact coverage" />}</> }
+
+function DecisionCard({ scenario, onChoose }: { scenario: { prompt: string }; onChoose: (service: DispatchService) => void }) { return <div className="mt-6 rounded-lg border-2 border-rose-400 bg-rose-50 p-5"><div className="flex gap-3"><BellRing className="mt-0.5 size-5 shrink-0 text-rose-600" /><div><p className="font-mono text-[.65rem] font-semibold uppercase tracking-[.15em] text-rose-700">Incoming incident</p><p className="mt-2 font-semibold text-slate-950">{scenario.prompt}</p><div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">{services.map((option) => <button type="button" key={option} onClick={() => onChoose(option)} className="h-10 rounded-md border border-rose-200 bg-white text-sm font-semibold transition hover:border-rose-500 hover:bg-rose-100">{option}</button>)}</div></div></div></div> }
+
+function PressureRound({ onNext, difficulty }: { onNext: () => void; difficulty: TrainingDifficulty }) { const [scenario] = useState(() => generatePressureScenario(difficulty)); const [value, setValue] = useState(emptyFields); const [interrupted, setInterrupted] = useState(false); const [decision, setDecision] = useState<DispatchService | null>(null); const [result, setResult] = useState<number | null>(null); useEffect(() => { const timer = window.setTimeout(() => setInterrupted(true), difficultySettings[difficulty].interruptionDelay); return () => window.clearTimeout(timer) }, [difficulty]); const total = Math.round(fieldScore(scenario.record, value) * 0.75 + (decision === scenario.interruption.answer ? 25 : 0)); function complete() { setResult(total); saveDrillResult('pressure', total, difficulty) }; return <><p className="text-sm leading-relaxed text-slate-600">Enter the details. Stay with the task if a priority incident appears.</p><div className="mt-6"><RecordCard record={scenario.record} /></div><div className="mt-6"><DataFields value={value} onChange={setValue} disabled={(interrupted && !decision) || result !== null} /></div>{interrupted && !decision && <DecisionCard scenario={scenario.interruption} onChoose={setDecision} />}{decision && <p className="mt-5 flex items-center gap-2 text-sm font-medium text-emerald-700"><Check className="size-4" /> Routed. Finish the original record.</p>}{result === null ? <RoundButton label={decision ? 'Score pressure round' : interrupted ? 'Route the incident first' : 'Waiting for interruption…'} disabled={!decision} onClick={complete} /> : <Result value={result} onNext={onNext} />}</> }
+
+function SimulationRound({ onNext }: { onNext: () => void }) {
+  const [session] = useState(() => ({ entry: generateDataEntryScenario(), memory: generateMemoryCode(), audio: generateDataEntryScenario(), summary: generateCallSummaryScenario(), pressure: generatePressureScenario() }))
+  const [stage, setStage] = useState<SimulationStage>('intro')
+  const [entry, setEntry] = useState(emptyFields); const [audio, setAudio] = useState(emptyFields); const [pressure, setPressure] = useState(emptyFields); const [memory, setMemory] = useState(''); const [summary, setSummary] = useState(''); const [decision, setDecision] = useState<DispatchService | null>(null)
+  useEffect(() => { if (stage !== 'memory-show') return; const timer = window.setTimeout(() => setStage('memory-answer'), 3500); return () => window.clearTimeout(timer) }, [stage])
+  const scores = useMemo(() => ({ entry: fieldScore(session.entry, entry), memory: normalize(memory) === normalize(session.memory) ? 100 : 0, audio: fieldScore(session.audio, audio), summary: summaryScore(session.summary, summary), pressure: Math.round(fieldScore(session.pressure.record, pressure) * 0.75 + (decision === session.pressure.interruption.answer ? 25 : 0)) }), [audio, decision, entry, memory, pressure, session, summary])
+  const total = Math.round(Object.values(scores).reduce((sum, score) => sum + score, 0) / 5)
+  function finish() { saveDrillResult('simulation', total); setStage('result') }
+  if (stage === 'intro') return <><p className="text-sm leading-relaxed text-slate-600">This five-part simulation blends the core skills into one short session. It is a practice simulation, not an official exam.</p><RoundButton label="Start simulation" onClick={() => setStage('entry')} /></>
+  if (stage === 'result') return <><div className="grid gap-3 sm:grid-cols-2">{Object.entries(scores).map(([label, score]) => <div key={label} className="rounded-lg border border-slate-200 bg-slate-50 p-4"><p className="font-mono text-xs uppercase tracking-wider text-slate-500">{label}</p><p className="mt-1 font-mono text-2xl font-bold">{score}%</p></div>)}</div><Result value={total} label="Simulation score" onNext={onNext} /></>
+  return <><div className="mb-6 flex items-center justify-between text-xs font-mono uppercase tracking-[.14em] text-slate-500"><span>Simulation preview</span><span>{['entry', 'memory-show', 'memory-answer', 'audio', 'summary', 'pressure'].indexOf(stage) + 1} / 5</span></div>{stage === 'entry' && <><p className="text-sm text-slate-600">1. Enter this record accurately.</p><div className="mt-5"><RecordCard record={session.entry} /></div><div className="mt-5"><DataFields value={entry} onChange={setEntry} /></div><RoundButton label="Continue to memory" onClick={() => setStage('memory-show')} /></>}{stage === 'memory-show' && <><p className="text-sm text-slate-600">2. Memorize this code. It will disappear shortly.</p><div className="mt-8 grid min-h-32 place-items-center rounded-lg border border-blue-200 bg-blue-50 font-mono text-3xl font-bold tracking-[.24em] text-blue-950">{session.memory}</div></>}{stage === 'memory-answer' && <><p className="text-sm text-slate-600">2. Enter the code you just saw.</p><input autoFocus value={memory} onChange={(event) => setMemory(event.target.value.toUpperCase())} maxLength={6} className="mt-6 h-14 w-full rounded-md border border-slate-300 px-4 text-center font-mono text-xl font-bold tracking-[.2em] outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10" /><RoundButton label="Continue to audio" onClick={() => setStage('audio')} /></>}{stage === 'audio' && <><p className="text-sm text-slate-600">3. Listen to the caller, then enter the details.</p><div className="mt-5"><AudioPlayer script={recordToAudioScript(session.audio)} /></div><div className="mt-5"><DataFields value={audio} onChange={setAudio} /></div><RoundButton label="Continue to summary" onClick={() => setStage('summary')} /></>}{stage === 'summary' && <><p className="text-sm text-slate-600">4. Summarize the essentials in a concise call note.</p><div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-7 text-slate-800">{session.summary.statement}</div><textarea value={summary} onChange={(event) => setSummary(event.target.value)} rows={5} placeholder="Incident, location, callback, vehicle…" className="mt-5 w-full rounded-md border border-slate-300 p-3 text-sm outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10" /><RoundButton label="Continue to pressure task" onClick={() => setStage('pressure')} /></>}{stage === 'pressure' && <><p className="text-sm text-slate-600">5. Route the incident, then finish the original record.</p><div className="mt-5"><RecordCard record={session.pressure.record} /></div><div className="mt-5"><DataFields value={pressure} onChange={setPressure} disabled={!decision} /></div>{!decision ? <DecisionCard scenario={session.pressure.interruption} onChoose={setDecision} /> : <RoundButton label="Finish simulation" onClick={finish} />}</>}</>
+}
+
+const SIMULATION_SECONDS = 20 * 60
+const SIMULATION_CYCLES = 4
+
+function createSimulationSession(difficulty: TrainingDifficulty) {
+  return { entry: generateDataEntryScenario(difficulty), memory: generateMemoryCode(difficulty), audio: generateDataEntryScenario(difficulty), summary: generateCallSummaryScenario(difficulty), pressure: generatePressureScenario(difficulty) }
+}
+
+function formatRemaining(seconds: number) {
+  return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`
+}
+
+function TimedSimulationRound({ onNext, difficulty }: { onNext: () => void; difficulty: TrainingDifficulty }) {
+  const [session, setSession] = useState(() => createSimulationSession(difficulty))
+  const [stage, setStage] = useState<SimulationStage>('intro')
+  const [cycle, setCycle] = useState(0)
+  const [remaining, setRemaining] = useState(SIMULATION_SECONDS)
+  const [cycleScores, setCycleScores] = useState<Array<Record<string, number>>>([])
+  const [finalScore, setFinalScore] = useState<number | null>(null)
+  const [entry, setEntry] = useState(emptyFields)
+  const [audio, setAudio] = useState(emptyFields)
+  const [pressure, setPressure] = useState(emptyFields)
+  const [memory, setMemory] = useState('')
+  const [summary, setSummary] = useState('')
+  const [decision, setDecision] = useState<DispatchService | null>(null)
+
+  useEffect(() => { if (stage !== 'memory-show') return; const timer = window.setTimeout(() => setStage('memory-answer'), difficultySettings[difficulty].memoryDuration); return () => window.clearTimeout(timer) }, [difficulty, stage])
+  useEffect(() => { if (stage === 'intro' || stage === 'result') return; const timer = window.setInterval(() => setRemaining((value) => Math.max(0, value - 1)), 1000); return () => window.clearInterval(timer) }, [stage])
+  useEffect(() => { if (remaining !== 0 || stage === 'intro' || stage === 'result') return; const timer = window.setTimeout(() => { const partial = cycleScores.length ? Math.round(cycleScores.reduce((sum, scores) => sum + averageSimulationScore(scores), 0) / cycleScores.length) : 0; setFinalScore(partial); saveDrillResult('simulation', partial, difficulty); setStage('result') }, 0); return () => window.clearTimeout(timer) }, [cycleScores, difficulty, remaining, stage])
+
+  const scores = useMemo(() => ({ entry: fieldScore(session.entry, entry), memory: normalize(memory) === normalize(session.memory) ? 100 : 0, audio: fieldScore(session.audio, audio), summary: summaryScore(session.summary, summary), pressure: Math.round(fieldScore(session.pressure.record, pressure) * 0.75 + (decision === session.pressure.interruption.answer ? 25 : 0)) }), [audio, decision, entry, memory, pressure, session, summary])
+
+  function resetCycle() {
+    setSession(createSimulationSession(difficulty))
+    setEntry(emptyFields()); setAudio(emptyFields()); setPressure(emptyFields()); setMemory(''); setSummary(''); setDecision(null)
+    setStage('entry')
   }
 
-  return (
-    <main className="min-h-screen bg-[#f4f6f8] text-slate-950">
-      <header className="border-b border-slate-200 bg-white"><div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6"><Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-800"><span className="grid size-8 place-items-center rounded bg-blue-700 text-white"><Keyboard className="size-4" /></span>DispatchReady</Link><span className="font-mono text-xs uppercase tracking-[.16em] text-slate-500">Training console</span></div></header>
-      <div className="mx-auto grid max-w-6xl gap-6 px-4 py-7 sm:px-6 lg:grid-cols-[250px_1fr] lg:py-10">
-        <aside className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm lg:h-fit"><p className="px-3 pb-3 pt-2 font-mono text-[.65rem] font-semibold uppercase tracking-[.16em] text-slate-500">Core drills</p><div className="space-y-1">{(Object.keys(drillInfo) as Drill[]).map((key) => { const item = drillInfo[key]; const Icon = item.icon; return <button type="button" key={key} onClick={() => selectDrill(key)} className={`flex w-full items-start gap-3 rounded-lg px-3 py-3 text-left transition ${drill === key ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-slate-100'}`}><Icon className={`mt-0.5 size-4 shrink-0 ${drill === key ? 'text-blue-300' : 'text-blue-700'}`} /><span><span className="block text-sm font-semibold">{item.label}</span><span className={`mt-0.5 block text-xs leading-relaxed ${drill === key ? 'text-slate-400' : 'text-slate-500'}`}>{item.detail}</span></span></button> })}</div><div className="mx-3 mt-5 border-t border-slate-200 pt-4"><p className="text-xs leading-relaxed text-slate-500">Practice mode does not create an official score. Paid access control and training history are the next MVP layer.</p></div></aside>
-        <section className="min-w-0 rounded-xl border border-slate-200 bg-white shadow-[0_20px_60px_-40px_rgba(15,23,42,.55)]"><div className="border-b border-slate-200 bg-[linear-gradient(120deg,#0f172a_0%,#172554_100%)] px-6 py-6 text-white sm:px-8"><p className="font-mono text-xs uppercase tracking-[.18em] text-blue-300">{drillInfo[drill].label}</p><h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Train one ability at a time.</h1><p className="mt-2 text-sm leading-relaxed text-slate-300">Repeat the round until precision feels automatic, then layer in the interruption.</p></div><div className="p-6 sm:p-8">{drill === 'entry' && <EntryRound key={round} onNext={() => setRound((value) => value + 1)} />}{drill === 'memory' && <MemoryRound key={round} onNext={() => setRound((value) => value + 1)} />}{drill === 'pressure' && <PressureRound key={round} onNext={() => setRound((value) => value + 1)} />}</div></section>
-      </div>
-    </main>
-  )
+  function completeCycle() {
+    const nextScores = [...cycleScores, scores]
+    if (cycle + 1 === SIMULATION_CYCLES) {
+      const total = Math.round(nextScores.reduce((sum, item) => sum + averageSimulationScore(item), 0) / nextScores.length)
+      setCycleScores(nextScores); setFinalScore(total); saveDrillResult('simulation', total, difficulty); setStage('result')
+      return
+    }
+    setCycleScores(nextScores); setCycle((value) => value + 1); resetCycle()
+  }
+
+  if (stage === 'intro') return <><div className="rounded-lg border border-blue-200 bg-blue-50 p-5"><p className="font-mono text-xs font-semibold uppercase tracking-[.16em] text-blue-700">20-minute full simulation</p><p className="mt-2 text-sm leading-relaxed text-slate-700">Complete four mixed cycles. Each cycle includes data entry, memory, audio detail entry, call summarization, and an interruption decision. The session timer runs continuously once you start.</p></div><RoundButton label="Start 20-minute simulation" onClick={() => setStage('entry')} /></>
+  if (stage === 'result') { const allScores = [...cycleScores]; const focus = lowestSimulationSkill(allScores); return <><div className="rounded-lg border border-slate-200 bg-slate-50 p-5"><p className="font-mono text-xs uppercase tracking-[.16em] text-slate-500">Session complete</p><div className="mt-2 flex items-end gap-3"><strong className="font-mono text-5xl tracking-tight">{finalScore ?? 0}</strong><span className="mb-1 text-slate-500">/ 100</span></div><p className="mt-3 text-sm text-slate-600">{remaining === 0 ? 'Time expired before the session was complete.' : `Completed ${cycleScores.length} of ${SIMULATION_CYCLES} mixed cycles.`}</p><div className="mt-5 grid gap-3 sm:grid-cols-2">{simulationAverages(allScores).map(([label, value]) => <div key={label} className="rounded-md border border-slate-200 bg-white p-3"><p className="font-mono text-xs uppercase tracking-wider text-slate-500">{label}</p><p className="mt-1 font-mono text-xl font-bold">{value}%</p></div>)}</div><p className="mt-5 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">Recommended focus: <strong>{focus}</strong>. Return to that individual drill before your next mixed session.</p></div><Result value={finalScore ?? 0} label="Simulation score" onNext={onNext} /></> }
+
+  const taskNumber = stage === 'entry' ? 1 : stage.startsWith('memory') ? 2 : stage === 'audio' ? 3 : stage === 'summary' ? 4 : 5
+  return <><div className="mb-6 flex flex-wrap items-center justify-between gap-3"><div><p className="font-mono text-xs uppercase tracking-[.14em] text-slate-500">Cycle {cycle + 1} of {SIMULATION_CYCLES} · task {taskNumber} of 5</p><div className="mt-2 h-1.5 w-48 overflow-hidden rounded-full bg-slate-100"><div className="h-full bg-blue-700 transition-all" style={{ width: `${((cycle * 5 + taskNumber) / (SIMULATION_CYCLES * 5)) * 100}%` }} /></div></div><span className={`rounded-md px-3 py-2 font-mono text-lg font-bold ${remaining < 120 ? 'bg-rose-50 text-rose-700' : 'bg-slate-950 text-white'}`}>{formatRemaining(remaining)}</span></div>{stage === 'entry' && <><p className="text-sm text-slate-600">Enter this record accurately.</p><div className="mt-5"><RecordCard record={session.entry} /></div><div className="mt-5"><DataFields value={entry} onChange={setEntry} /></div><RoundButton label="Continue to memory" onClick={() => setStage('memory-show')} /></>}{stage === 'memory-show' && <><p className="text-sm text-slate-600">Memorize this code. It will disappear after a few seconds.</p><div className="mt-8 grid min-h-32 place-items-center rounded-lg border border-blue-200 bg-blue-50 font-mono text-3xl font-bold tracking-[.24em] text-blue-950">{session.memory}</div></>}{stage === 'memory-answer' && <><p className="text-sm text-slate-600">Enter the code you just saw.</p><input autoFocus value={memory} onChange={(event) => setMemory(event.target.value.toUpperCase())} maxLength={difficultySettings[difficulty].memoryLength} className="mt-6 h-14 w-full rounded-md border border-slate-300 px-4 text-center font-mono text-xl font-bold tracking-[.2em] outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10" /><RoundButton label="Continue to audio" onClick={() => setStage('audio')} /></>}{stage === 'audio' && <><p className="text-sm text-slate-600">Listen to the caller, then enter the details.</p><div className="mt-5"><AudioPlayer script={recordToAudioScript(session.audio)} rate={difficultySettings[difficulty].audioRate} /></div><div className="mt-5"><DataFields value={audio} onChange={setAudio} /></div><RoundButton label="Continue to summary" onClick={() => setStage('summary')} /></>}{stage === 'summary' && <><p className="text-sm text-slate-600">Write a concise call note with the essential facts.</p><div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-7 text-slate-800">{session.summary.statement}</div><textarea value={summary} onChange={(event) => setSummary(event.target.value)} rows={5} placeholder="Incident, location, callback, vehicle…" className="mt-5 w-full rounded-md border border-slate-300 p-3 text-sm outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10" /><RoundButton label="Continue to interruption" onClick={() => setStage('pressure')} /></>}{stage === 'pressure' && <><p className="text-sm text-slate-600">Route the incoming incident, then finish the original record.</p><div className="mt-5"><RecordCard record={session.pressure.record} /></div><div className="mt-5"><DataFields value={pressure} onChange={setPressure} disabled={!decision} /></div>{!decision ? <DecisionCard scenario={session.pressure.interruption} onChoose={setDecision} /> : <RoundButton label={cycle + 1 === SIMULATION_CYCLES ? 'Finish simulation' : 'Start next cycle'} onClick={completeCycle} />}</>}</>
 }
 
-function DataFields({ value, onChange, disabled = false }: { value: RecordFields; onChange: (next: RecordFields) => void; disabled?: boolean }) {
-  return <div className="grid gap-4 sm:grid-cols-2">{([['name', 'Caller name'], ['address', 'Address'], ['phone', 'Phone'], ['plate', 'Plate']] as Array<[keyof RecordFields, string]>).map(([key, label]) => <label key={key}><span className="mb-1.5 block font-mono text-[.65rem] font-medium uppercase tracking-[.15em] text-slate-500">{label}</span><input disabled={disabled} value={value[key]} onChange={(event) => onChange({ ...value, [key]: event.target.value })} className="h-11 w-full rounded-md border border-slate-300 px-3 font-mono text-sm outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 disabled:bg-slate-100" /></label>)}</div>
+function averageSimulationScore(scores: Record<string, number>) {
+  const values = Object.values(scores)
+  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length)
 }
 
-function RecordCard({ record }: { record: RecordFields }) {
-  return <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 font-mono text-sm leading-7 text-slate-800">CALLER: {record.name}<br />LOCATION: {record.address}<br />CALLBACK: {record.phone}<br />VEHICLE PLATE: {record.plate}</div>
+function simulationAverages(cycles: Array<Record<string, number>>) {
+  const labels = ['entry', 'memory', 'audio', 'summary', 'pressure']
+  return labels.map((label) => [label, cycles.length ? Math.round(cycles.reduce((sum, cycle) => sum + (cycle[label] ?? 0), 0) / cycles.length) : 0] as const)
 }
 
-function Result({ value, onNext }: { value: number; onNext: () => void }) {
-  return <div className="mt-7 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4"><div><p className="font-mono text-[.65rem] font-semibold uppercase tracking-[.15em] text-emerald-700">Round complete</p><p className="mt-1 text-lg font-semibold text-slate-950">Accuracy: {value}%</p></div><button type="button" onClick={onNext} className="inline-flex h-10 items-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800">Next round <ArrowRight className="size-4" /></button></div>
-}
-
-function EntryRound({ onNext }: { onNext: () => void }) {
-  const record = useMemo(() => records[Math.floor(Math.random() * records.length)], [])
-  const [value, setValue] = useState(initialFields)
-  const [result, setResult] = useState<number | null>(null)
-  return <><p className="text-sm leading-relaxed text-slate-600">Read the record, then enter the details without copying and pasting.</p><div className="mt-6"><RecordCard record={record} /></div><div className="mt-6"><DataFields value={value} onChange={setValue} disabled={result !== null} /></div>{result === null ? <RoundButton label="Score this round" onClick={() => setResult(score(record, value))} /> : <Result value={result} onNext={onNext} />}</>
-}
-
-function MemoryRound({ onNext }: { onNext: () => void }) {
-  const code = useMemo(() => `${Math.random().toString(36).slice(2, 8).toUpperCase()}`, [])
-  const [visible, setVisible] = useState(true)
-  const [answer, setAnswer] = useState('')
-  const [result, setResult] = useState<number | null>(null)
-  useEffect(() => { const timer = window.setTimeout(() => setVisible(false), 3500); return () => window.clearTimeout(timer) }, [])
-  return <><p className="text-sm leading-relaxed text-slate-600">Memorize the code before it clears. No notes—just recall.</p><div className="mt-8 grid min-h-32 place-items-center rounded-lg border border-slate-200 bg-slate-50 px-5 text-center font-mono text-3xl font-bold tracking-[.24em] text-slate-950 sm:text-4xl">{visible ? code : '••••••'}</div>{!visible && <><input autoFocus value={answer} onChange={(event) => setAnswer(event.target.value.toUpperCase())} disabled={result !== null} maxLength={6} placeholder="ENTER CODE" className="mt-7 h-14 w-full rounded-md border border-slate-300 px-4 text-center font-mono text-xl font-semibold tracking-[.2em] outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10" />{result === null ? <RoundButton label="Score recall" onClick={() => setResult(answer === code ? 100 : 0)} /> : <Result value={result} onNext={onNext} />}</>}</>
-}
-
-function PressureRound({ onNext }: { onNext: () => void }) {
-  const [value, setValue] = useState(initialFields)
-  const [interrupted, setInterrupted] = useState(false)
-  const [decision, setDecision] = useState('')
-  const [result, setResult] = useState<number | null>(null)
-  useEffect(() => { const timer = window.setTimeout(() => setInterrupted(true), 7000); return () => window.clearTimeout(timer) }, [])
-  const total = Math.round(score(pressureRecord, value) * .75 + (decision === 'Fire' ? 25 : 0))
-  return <><p className="text-sm leading-relaxed text-slate-600">Enter the details. Stay with the task if a priority incident appears.</p><div className="mt-6"><RecordCard record={pressureRecord} /></div><div className="mt-6"><DataFields value={value} onChange={setValue} disabled={(interrupted && !decision) || result !== null} /></div>{interrupted && !decision && <div className="mt-6 rounded-lg border-2 border-rose-400 bg-rose-50 p-5"><div className="flex gap-3"><BellRing className="mt-0.5 size-5 shrink-0 text-rose-600" /><div><p className="font-mono text-[.65rem] font-semibold uppercase tracking-[.15em] text-rose-700">Incoming incident</p><p className="mt-2 font-semibold text-slate-950">Flames are visible from a vehicle in a parking lot. Which service receives it?</p><div className="mt-4 grid grid-cols-3 gap-2">{['Police', 'Fire', 'EMS'].map((option) => <button type="button" key={option} onClick={() => setDecision(option)} className="h-10 rounded-md border border-rose-200 bg-white text-sm font-semibold transition hover:border-rose-500 hover:bg-rose-100">{option}</button>)}</div></div></div></div>}{decision && <p className="mt-5 flex items-center gap-2 text-sm font-medium text-emerald-700"><Check className="size-4" /> Routed. Finish the original record.</p>}{result === null ? <RoundButton label={decision ? 'Score pressure round' : interrupted ? 'Route the incident first' : 'Waiting for interruption…'} disabled={!decision} onClick={() => setResult(total)} /> : <Result value={result} onNext={onNext} />}</>
-}
-
-function RoundButton({ label, onClick, disabled = false }: { label: string; onClick: () => void; disabled?: boolean }) {
-  return <div className="mt-8 flex justify-end"><button type="button" disabled={disabled} onClick={onClick} className="inline-flex h-11 items-center gap-2 rounded-md bg-blue-700 px-5 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-slate-300">{label}<Check className="size-4" /></button></div>
+function lowestSimulationSkill(cycles: Array<Record<string, number>>) {
+  return simulationAverages(cycles).sort(([, left], [, right]) => left - right)[0]?.[0] ?? 'Data Entry'
 }

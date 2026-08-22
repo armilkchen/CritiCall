@@ -1,6 +1,5 @@
 import Image from 'next/image'
 import { ArrowRight, TrendingDown } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 
 const specs = [
   { label: 'Duration', value: '8–10 min' },
@@ -46,13 +45,12 @@ export function Hero() {
               Take a free pressure test
               <ArrowRight className="size-4" aria-hidden="true" />
             </a>
-            <Button
-              size="lg"
-              variant="outline"
-              className="h-12 bg-card px-6 text-base"
+            <a
+              href="#how-it-works"
+              className="inline-flex h-12 items-center justify-center rounded-lg border border-border bg-card px-6 text-base font-medium text-foreground transition hover:bg-muted"
             >
               See how it works
-            </Button>
+            </a>
           </div>
 
           <dl className="mt-10 grid max-w-md grid-cols-3 border-t border-border pt-6">

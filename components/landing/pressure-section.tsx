@@ -1,4 +1,7 @@
-import { Play, Bell, Check } from 'lucide-react'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { Play, Bell, Check, Volume2 } from 'lucide-react'
 import { SectionLabel } from './section-label'
 
 const checklist = [
@@ -9,6 +12,23 @@ const checklist = [
 ]
 
 export function PressureSection() {
+  const [playing, setPlaying] = useState(false)
+
+  useEffect(() => () => window.speechSynthesis?.cancel(), [])
+
+  function playDemoAudio() {
+    if (!('speechSynthesis' in window)) return
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(
+      'My name is Jennifer Collins. I am at 1842 West Pine Street. The vehicle is a blue Honda Civic. The plate is Seven Kilo X-ray Two Nine Bravo.',
+    )
+    utterance.rate = 0.88
+    utterance.onstart = () => setPlaying(true)
+    utterance.onend = () => setPlaying(false)
+    utterance.onerror = () => setPlaying(false)
+    window.speechSynthesis.speak(utterance)
+  }
+
   return (
     <section
       id="report"
@@ -34,15 +54,14 @@ export function PressureSection() {
             <div className="p-5">
               <button
                 type="button"
+                onClick={playDemoAudio}
                 className="flex w-full items-center gap-3 rounded-md border border-white/10 bg-white/5 p-3 text-left transition-colors hover:bg-white/10"
               >
                 <span className="flex size-10 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                  <Play className="size-4" aria-hidden="true" />
+                  {playing ? <Volume2 className="size-4" aria-hidden="true" /> : <Play className="size-4" aria-hidden="true" />}
                 </span>
                 <span>
-                  <span className="block text-sm font-medium text-white">
-                    Play caller audio
-                  </span>
+                  <span className="block text-sm font-medium text-white">{playing ? 'Playing caller audio…' : 'Play caller audio'}</span>
                   <span className="block font-mono text-xs text-white/50">
                     &ldquo;Seven Kilo X-ray Two Nine Bravo&hellip;&rdquo;
                   </span>

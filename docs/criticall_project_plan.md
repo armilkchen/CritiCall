@@ -1066,3 +1066,350 @@ Pressure Training 和 Full Simulation 负责形成付费价值。
 
 如果这一闭环成立，再扩展更多 dispatcher hiring tests
 和相邻职业考试，逐渐形成可复用的 Micro Exam Prep Engine。
+
+------------------------------------------------------------------------
+
+## 17. CritiCall 官方考试结构调研
+
+> 调研更新时间：2026-08-20
+
+本节依据 CritiCall / Biddle Consulting Group 官方网站、官方考生准备指南、
+官方测试模块清单和官方 Applicant FAQ 整理。
+
+### 17.1 核心结论：不存在全国统一固定试卷
+
+CritiCall 不是一张所有考生完全相同的全国统一考试，而是一套由招聘机构自行配置的
+**test battery**。
+
+每个 911 / public-safety agency 可以自行决定：
+
+-   使用哪些测试模块；
+-   模块出现的顺序；
+-   测试在现场还是远程进行；
+-   是否使用远程监考；
+-   各模块的评分标准和通过标准；
+-   测试通过后进入哪一轮招聘流程。
+
+官方说明，系统会按照机构选择的配置让模块依次出现，直到考生完成整场测试，并自动
+评分大部分表现。
+
+因此产品和 SEO 内容中不应该声称：
+
+-   CritiCall 固定包含某几个 section；
+-   所有考生都会参加完全相同的模块；
+-   存在全国统一 passing score；
+-   我们的练习等同于真实 CritiCall 试卷。
+
+更准确的表达是：
+
+> Practice for skills commonly measured by agency-configured CritiCall and
+> public-safety dispatcher hiring assessments.
+
+### 17.2 考生通常经历的测试流程
+
+#### 1. 招聘机构发出测试邀请
+
+CritiCall 通常是 dispatcher / calltaker 招聘流程中的能力测试环节。机构先完成报名或
+初步筛选，再向候选人提供测试时间、地点或在线测试方式。
+
+#### 2. 登录系统并阅读说明
+
+正式测试前通常包括：
+
+-   系统操作说明；
+-   耳机和音量检查；
+-   鼠标与键盘操作说明；
+-   当前模块的作答规则；
+-   不计分的 practice items。
+
+官方 Candidate Guide 说明，每个模块开始时通常会提供练习题，练习题不计入最终
+成绩，而且考生通常可以选择跳过练习部分。
+
+#### 3. 依次完成机构选择的模块
+
+模块会一个接一个出现。考试可能同时使用：
+
+-   键盘；
+-   鼠标；
+-   耳机；
+-   屏幕中的数据录入字段；
+-   限时弹出的 emergency messages。
+
+官方 Applicant FAQ 表示，整套测试通常平均需要约 **1--3 小时**，但实际时长取决于
+机构配置的模块数量。
+
+#### 4. 系统自动评分
+
+可能被记录和评分的指标包括：
+
+-   输入正确率；
+-   输入速度；
+-   是否填入正确字段；
+-   反应时间；
+-   决策是否符合给定规则；
+-   是否遗漏信息；
+-   多任务情况下的综合表现。
+
+最终由招聘机构根据自己的标准决定是否通过，不存在统一的官方全国分数线。
+
+### 17.3 官方公布的模块范围
+
+官方 FAQ 表示 CritiCall 软件包含 20 多种测试，但每个机构只会选择适合其岗位的部分。
+官方模块清单可按能力分为以下几组。
+
+#### A. 数据输入与键盘操作
+
+##### Computerized Data Entry
+
+-   将听到或看到的信息输入电脑；
+-   同时考察速度和准确率；
+-   信息必须输入到正确字段。
+
+官方 Candidate Guide 展示的典型字段包括：
+
+-   Last Name
+-   First Name
+-   Telephone
+-   Address
+-   City
+-   Zip
+-   Vehicle Identification Number
+-   License Plate
+-   Driver's License
+
+##### Keyboarding
+
+-   根据屏幕上的文字输入段落；
+-   主要评分指标为 words per minute；
+-   同时要求保持准确率。
+
+##### Cross Referencing
+
+-   从列表中查找指定信息；
+-   考察字母顺序、字符识别和数字搜索；
+-   查找请求可能通过文字或语音提供。
+
+##### Perceptual Ability
+
+-   比较相似的字母和数字序列；
+-   排除非常接近、容易混淆的错误项。
+
+#### B. 音频理解和来电摘要
+
+##### Oral Comprehension / Call Summarization 1 & 2
+
+-   听懂语音叙述；
+-   通过键盘记录或总结主要事实；
+-   过滤无关信息；
+-   Call Summarization 2 是更高级的版本。
+
+##### Call Summarization 2 MT
+
+在 Call Summarization 2 中加入必须立即响应的 emergency response items。
+
+##### Call Summarization 2 E911
+
+-   听取并理解可听信息；
+-   将信息准确输入电脑；
+-   同时执行 decision-making task。
+
+##### Call Summarization 2 MT E911
+
+在 E911 版本基础上增加更多决策和多任务项目，分数综合考虑：
+
+-   数据录入准确率；
+-   多任务响应；
+-   决策题表现；
+-   选择题表现。
+
+#### C. 多任务与快速决策
+
+##### Multi-Tasking / Advanced Decision Making
+
+-   在执行其他任务的同时做出判断；
+-   包含 deductive reasoning 和 reaction time；
+-   使用有限响应时间模拟 dispatch 环境。
+
+官方 Candidate Guide 给出四类 emergency response 规则：
+
+-   **Police**：有人试图、威胁或已经伤害他人，或正在损害他人财产；
+-   **Fire**：出现烟雾、火焰、火警，或有人被困需要救援；
+-   **EMS**：出现需要医疗人员介入的紧急医疗状况；
+-   **Utility**：公共供水、电力、天然气、路灯、交通信号或下水系统故障。
+
+官方特别要求考生：
+
+> 只使用测试提供的决策规则，不依赖自己对真实警察、消防、EMS 或 agency 流程的
+> 既有知识。
+
+Emergency message 的具体规则包括：
+
+-   每条通常只有 **15 秒**响应时间；
+-   选错机构不得分；
+-   超过 15 秒未作答不得分；
+-   消息可能在考生执行另一项任务时突然出现。
+
+#### D. 短期记忆
+
+##### Memory Recall
+
+先显示多组配对信息，几秒后隐藏，再要求根据其中一个元素选择原来的配对内容。
+
+例如：
+
+``` text
+Red    → Dodge
+Yellow → Ford
+Green  → Chevrolet
+```
+
+##### Memory Recall: Audio
+
+听取序列号、VIN、车牌或其他字母数字代码，然后从记忆中输入。
+
+##### Memory Recall: Numeric (Audio)
+
+听取不带区号的电话号码，然后从记忆中输入。
+
+#### E. 地图和空间定位
+
+##### Position Locating
+
+-   根据口头或文字提供的方向确定人员位置；
+-   使用与工作相关的简单场景。
+
+##### Map Reading / Geographic Directions
+
+-   选择到达目的地的最直接路线；
+-   遵守地图中的交通标志和限制；
+-   使用左、右、North、East、South、West 等基础方向。
+
+官方 FAQ 表示地图通常只包含基础元素，例如：
+
+-   街道；
+-   路口；
+-   桥；
+-   河流；
+-   铁路。
+
+不要求考生具备专业地图训练。
+
+#### F. 阅读、语言和基础认知
+
+##### Reading Comprehension
+
+阅读短文，理解并记住其中的细节。
+
+##### Sentence Clarity
+
+判断哪一种句子或表达方式能够最清晰地陈述事实。
+
+##### Spelling
+
+拼写常见但容易混淆或误用的单词。官方指南举例说明，类似 `patients` 和
+`patience` 的错误可能影响紧急信息传递。
+
+##### Proofreading
+
+直接修改文档中的拼写、标点和语法错误。
+
+##### Numerical Ability
+
+处理与工作场景相关的：
+
+-   加法；
+-   减法；
+-   百分比；
+-   距离；
+-   时间；
+-   金额。
+
+##### Frequency of Information / Probability Determination
+
+-   根据信息判断最可能的解决方案；
+-   使用基础概率逻辑；
+-   过滤无关信息。
+
+### 17.4 测试操作中的重要细节
+
+根据官方 Candidate Guide，产品设计和训练内容应注意以下真实操作特点：
+
+-   很多语音信息通过耳机播放；
+-   考生通常可以调整耳机音量；
+-   部分界面只允许输入大写字母；
+-   正式题目通常不能遗漏，跳题可能被扣分；
+-   部分屏幕需要使用滚动条查看完整内容；
+-   选择题使用鼠标单击；
+-   数据必须输入到正确字段，而不只是文本内容正确；
+-   Tab 和 Shift + Tab 可用于切换数据字段；
+-   Emergency response 任务可能打断当前任务；
+-   考生不需要 dispatcher 专业知识，但需要遵循系统给定规则。
+
+### 17.5 CritiCall 3D
+
+CritiCall 官方当前推广的新版本称为 **CritiCall 3D**，它把考察范围分为三个维度：
+
+1.  **Operational**：数据输入、记忆、地图、决策、多任务等传统硬技能；
+2.  **Behavioral**：可靠性、自信、抗压、任务管理等行为特征；
+3.  **Situational**：在接近真实工作情境的 scenario 中判断如何响应。
+
+官方测试清单还列出可以与 TestGenius 集成的资源：
+
+-   Behavioral / Customer Service Situational Judgment Testing；
+-   Personality Testing；
+-   Remote Proctoring；
+-   Language Assessments；
+-   Microsoft Office Training。
+
+这些项目不一定都会出现在每个考生的 CritiCall 测试中，其中一些属于机构额外购买或
+集成的产品能力。因此 MVP 不应把它们描述为经典 CritiCall 的固定 section。
+
+### 17.6 对当前 Demo 的影响
+
+当前 Demo 已经覆盖：
+
+-   基础 Data Entry；
+-   Memory Recall；
+-   Audio Data Entry；
+-   Pressure Interruption；
+-   Police / Fire / EMS 基础决策。
+
+根据官方结构，下一步 Demo 优先级调整为：
+
+#### 第一优先级
+
+1.  Data Entry 增加官方指南中更完整的字段；
+2.  Decision Making 增加 Utility；
+3.  Emergency message 增加 15 秒倒计时；
+4.  在任务前明确展示并训练四条 decision rules；
+5.  增加 telephone、plate、VIN 的 Audio Memory；
+6.  增加基础 Call Summarization。
+
+#### 第二优先级
+
+-   Cross Referencing；
+-   Perceptual Ability；
+-   Map Reading；
+-   Position Locating；
+-   更完整的 Call Summarization + Multitasking。
+
+#### 第三优先级
+
+-   Reading Comprehension；
+-   Spelling；
+-   Proofreading；
+-   Sentence Clarity；
+-   Numerical Ability；
+-   Probability / Frequency。
+
+MVP 不需要实现所有官方模块，但长期训练引擎应该支持按模块组合成不同的
+**dispatcher skills test battery**，而不是假定只有一套固定流程。
+
+### 17.7 官方来源
+
+-   [CritiCall 官方主页](https://criticall911.com/)
+-   [CritiCall Agencies / HR 说明](https://criticall911.com/dispatcher-testing/agencieshr)
+-   [CritiCall Applicants 页面](https://criticall911.com/dispatcher-testing/applicants)
+-   [Candidate Test Preparation Guide 2023 (PDF)](https://criticall911.com/hubfs/Criticall-Website-Files/CritiCall_Candidate_Test_Preparation_Guide_2023.pdf)
+-   [Test List and Integrated Resources (PDF)](https://criticall911.com/hubfs/Criticall-Website-Files/TestGenius-CritiCall-Test-List-and-Integrated-Resources.pdf)
+-   [CritiCall and the Dispatcher Applicant FAQ](https://criticall911.com/company/news/criticall-dispatcher-applicant)
