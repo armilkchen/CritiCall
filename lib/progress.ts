@@ -10,7 +10,7 @@ export type AssessmentResult = {
   decisionTimedOut: boolean
 }
 
-export type DrillType = 'entry' | 'memory' | 'audio' | 'summary' | 'pressure' | 'simulation'
+export type DrillType = 'entry' | 'typing' | 'memory' | 'audio' | 'summary' | 'pressure' | 'simulation' | 'exam'
 
 export type DrillResult = {
   id: string
@@ -18,6 +18,10 @@ export type DrillResult = {
   drill: DrillType
   score: number
   difficulty?: 'easy' | 'normal' | 'hard'
+  metrics?: {
+    wpm: number
+    accuracy: number
+  }
 }
 
 export type ProgressData = {
@@ -69,7 +73,7 @@ export function saveAssessmentResult(result: Omit<AssessmentResult, 'id' | 'comp
   return assessment
 }
 
-export function saveDrillResult(drill: DrillType, score: number, difficulty?: DrillResult['difficulty']) {
+export function saveDrillResult(drill: DrillType, score: number, difficulty?: DrillResult['difficulty'], metrics?: DrillResult['metrics']) {
   const progress = loadProgress()
   const result: DrillResult = {
     id: createId(),
@@ -77,6 +81,7 @@ export function saveDrillResult(drill: DrillType, score: number, difficulty?: Dr
     drill,
     score,
     difficulty,
+    metrics,
   }
 
   saveProgress({

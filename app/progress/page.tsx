@@ -7,20 +7,24 @@ import { clearProgress, loadProgress, type DrillType, type ProgressData } from '
 
 const drillLabels: Record<DrillType, string> = {
   entry: 'Data Entry',
+  typing: 'Typing Accuracy',
   memory: 'Memory Recall',
   audio: 'Audio Data Entry',
   summary: 'Call Summary',
   pressure: 'Pressure Drill',
   simulation: 'Full Simulation',
+  exam: 'Timed Practice Exam',
 }
 
 const drillIcons = {
   entry: Keyboard,
+  typing: Keyboard,
   memory: Brain,
   audio: Headphones,
   summary: FileText,
   pressure: Layers,
   simulation: TimerReset,
+  exam: TimerReset,
 }
 
 const emptyProgress: ProgressData = { assessments: [], drills: [] }
@@ -88,7 +92,7 @@ export default function ProgressPage() {
                 <div className="mt-5 divide-y divide-slate-200">
                   {progress.drills.slice(0, 8).map((result) => {
                     const Icon = drillIcons[result.drill]
-                    return <div key={result.id} className="flex items-center justify-between gap-4 py-4"><div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-md bg-slate-100 text-blue-700"><Icon className="size-4" /></span><div><p className="text-sm font-semibold">{drillLabels[result.drill]}</p><p className="mt-0.5 text-xs text-slate-500">{formatDate(result.completedAt)}{result.difficulty ? ` · ${result.difficulty}` : ''}</p></div></div><span className="font-mono text-lg font-bold">{result.score}%</span></div>
+                    return <div key={result.id} className="flex items-center justify-between gap-4 py-4"><div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-md bg-slate-100 text-blue-700"><Icon className="size-4" /></span><div><p className="text-sm font-semibold">{drillLabels[result.drill]}</p><p className="mt-0.5 text-xs text-slate-500">{formatDate(result.completedAt)}{result.difficulty ? ` · ${result.difficulty}` : ''}{result.metrics ? ` · ${result.metrics.wpm} WPM · ${result.metrics.accuracy}% accuracy` : ''}</p></div></div><span className="font-mono text-lg font-bold">{result.score}%</span></div>
                   })}
                   {!progress.drills.length && <p className="py-8 text-sm text-slate-500">Complete a training round to see it here.</p>}
                 </div>

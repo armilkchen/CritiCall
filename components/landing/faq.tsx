@@ -15,7 +15,7 @@ const faqs = [
   },
   {
     q: 'Do I need an account to try it?',
-    a: 'No. The free 8–10 minute pressure assessment starts immediately with no sign-up. You only create an account after purchasing full training access.',
+    a: 'No. The assessment and every current training tool are available in the public beta with no sign-up, payment, or card required.',
   },
   {
     q: 'How does the audio practice work?',

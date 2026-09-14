@@ -7,7 +7,7 @@ const steps = [
   },
   {
     title: 'Take the pressure test',
-    body: 'An 8–10 minute assessment across typing, memory, audio entry, and decisions — with real interruptions layered in.',
+    body: 'An 8–10 minute assessment across data entry, memory, audio entry, and decisions — with real interruptions layered in.',
   },
   {
     title: 'Get your readiness report',

@@ -5,6 +5,8 @@ Run this checklist on a deployed preview before each public release. Record the 
 ## Core paths
 
 - [ ] Home page CTA opens `/assessment`.
+- [ ] Public beta users can complete the assessment, every drill at every difficulty, the timed practice exam, and detailed local history without sign-up or payment.
+- [ ] No paid plan, price, checkout button, or local Pro-preview control is visible in the public beta.
 - [ ] A completed assessment saves one result and `/progress` displays it after a refresh.
 - [ ] A completed drill saves one round and `/progress` displays it after a refresh.
 - [ ] Reset demo data clears only local training history after confirmation.
@@ -30,7 +32,7 @@ Run this checklist on a deployed preview before each public release. Record the 
 
 - [ ] `/privacy`, `/terms`, `/refunds`, and `/contact` load successfully from the footer.
 - [ ] The non-affiliation statement is visible at the bottom of the home, assessment, training, progress, and policy pages.
-- [ ] A real support email or contact form is configured before public launch; the current MVP contact page intentionally states that it is not configured.
+- [ ] Set `SUPPORT_EMAIL` to the monitored `support@dispatchready.org` inbox in the deployment environment; `/contact` renders it as a working mail link.
 
 ## Payment and entitlement — required after Stripe is connected
 

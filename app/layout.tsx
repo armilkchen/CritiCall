@@ -5,33 +5,32 @@ import { SiteFooter } from '@/components/site-footer'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'DispatchReady — CritiCall-Style 911 Dispatcher Test Prep',
+  metadataBase: new URL('https://dispatchready.org'),
+  title: 'DispatchReady — 911 Dispatcher Test Prep',
   description:
-    'Train for the pressure of a dispatcher hiring test. Free 8-minute pressure assessment plus unlimited drills for typing, audio data entry, memory, decision making, and multitasking.',
-  generator: 'v0.app',
+    'Free 911 dispatcher test practice for typing, data entry, audio recall, memory, call summaries, and multitasking under pressure.',
   keywords: [
     'criticall practice test',
     'criticall test prep',
     '911 dispatcher test',
     'dispatcher practice test',
-    'criticall typing test',
+    'criticall data entry practice',
+    'dispatcher typing test',
+    'emergency dispatcher assessment practice',
   ],
-  icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
+  alternates: { canonical: '/' },
+  openGraph: {
+    title: 'DispatchReady — 911 Dispatcher Test Prep',
+    description: 'Practice typing, data entry, audio recall, memory, call summaries, and multitasking under pressure.',
+    url: '/',
+    siteName: 'DispatchReady',
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'DispatchReady — 911 Dispatcher Test Prep',
+    description: 'Free practice for dispatcher hiring-test skills.',
   },
 }
 
