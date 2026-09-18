@@ -14,10 +14,12 @@ import {
   Volume2,
 } from 'lucide-react'
 import { saveAssessmentResult } from '@/lib/progress'
+import { speakEnglish } from '@/lib/english-speech'
 import {
   generateDataEntryScenario,
   generateMemoryCode,
   generatePressureScenario,
+  recordToAudioScript,
   type DispatchService,
   type RecordFields,
 } from '@/lib/generators/dispatcher-drills'
@@ -38,12 +40,6 @@ function fieldScore(answer: Fields, response: Fields) {
       0,
     ) * 25,
   )
-}
-
-function audioScript(record: Fields) {
-  const phone = record.phone.split('').map((character) => (character === '-' ? ', ' : character)).join(' ')
-  const plate = record.plate.split('').join(' ')
-  return `My name is ${record.name}. I am at ${record.address}. My phone number is ${phone}. The plate is ${plate}.`
 }
 
 function FieldInputs({ value, onChange, disabled = false }: { value: Fields; onChange: (next: Fields) => void; disabled?: boolean }) {
@@ -156,15 +152,12 @@ export function PressureAssessment() {
       return
     }
 
-    window.speechSynthesis?.cancel()
-    const utterance = new SpeechSynthesisUtterance(
-      audioScript(assessment.audioRecord),
-    )
-    utterance.rate = 0.88
-    utterance.onstart = () => setAudioUnavailable(false)
-    utterance.onend = () => setAudioPlayed(true)
-    utterance.onerror = () => setAudioUnavailable(true)
-    window.speechSynthesis?.speak(utterance)
+    const started = speakEnglish(recordToAudioScript(assessment.audioRecord), 0.88, {
+      onStart: () => setAudioUnavailable(false),
+      onEnd: () => setAudioPlayed(true),
+      onError: () => setAudioUnavailable(true),
+    })
+    if (!started) setAudioUnavailable(true)
   }
 
   function answerInterruption(option: DispatchService) {

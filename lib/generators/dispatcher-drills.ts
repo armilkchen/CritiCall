@@ -181,9 +181,10 @@ export function generatePressureScenario(difficulty: TrainingDifficulty = 'norma
 }
 
 export function recordToAudioScript(record: RecordFields) {
-  const phone = record.phone.split('').map((character) => (character === '-' ? ', ' : character)).join(' ')
+  const phone = record.phone.replace(/\d+/g, (digits) => digits.split('').join(', ')).replace(/-/g, ', ')
   const plate = record.plate.split('').join(' ')
-  return `My name is ${record.name}. I am at ${record.address}. My callback number is ${phone}. The vehicle plate is ${plate}.`
+  const address = record.address.replace(/\d+/g, (digits) => digits.split('').join(', '))
+  return `My name is ${record.name}. I am at ${address}. My callback number is ${phone}. The vehicle plate is ${plate}.`
 }
 
 export function generateCallSummaryScenario(difficulty: TrainingDifficulty = 'normal', random = Math.random): CallSummaryScenario {

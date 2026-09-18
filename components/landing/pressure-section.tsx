@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Play, Bell, Check, Volume2 } from 'lucide-react'
 import { SectionLabel } from './section-label'
+import { speakEnglish } from '@/lib/english-speech'
 
 const checklist = [
   'Baseline vs. under-pressure accuracy for every skill',
@@ -17,16 +18,15 @@ export function PressureSection() {
   useEffect(() => () => window.speechSynthesis?.cancel(), [])
 
   function playDemoAudio() {
-    if (!('speechSynthesis' in window)) return
-    window.speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(
+    speakEnglish(
       'My name is Jennifer Collins. I am at 1842 West Pine Street. The vehicle is a blue Honda Civic. The plate is Seven Kilo X-ray Two Nine Bravo.',
+      0.88,
+      {
+        onStart: () => setPlaying(true),
+        onEnd: () => setPlaying(false),
+        onError: () => setPlaying(false),
+      },
     )
-    utterance.rate = 0.88
-    utterance.onstart = () => setPlaying(true)
-    utterance.onend = () => setPlaying(false)
-    utterance.onerror = () => setPlaying(false)
-    window.speechSynthesis.speak(utterance)
   }
 
   return (
