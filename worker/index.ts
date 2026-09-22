@@ -79,6 +79,12 @@ async function recordEvent(request: Request, env: Env) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url)
+    if (url.protocol === 'http:' || url.hostname === 'www.dispatchready.org') {
+      url.protocol = 'https:'
+      url.hostname = 'dispatchready.org'
+      return Response.redirect(url.toString(), 308)
+    }
+
     if (request.method === 'POST' && url.pathname === '/api/events') {
       return recordEvent(request, env)
     }
