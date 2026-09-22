@@ -5,7 +5,7 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
-  "main": "vinext/server/fetch-handler",
+  "main": "worker/index.ts",
   "assets": {
     "directory": "dist/client",
     "not_found_handling": "none",
@@ -17,6 +17,12 @@
   "version_metadata": {
     "binding": "CF_VERSION_METADATA"
   },
+  "analytics_engine_datasets": [
+    {
+      "binding": "FUNNEL_ANALYTICS",
+      "dataset": "dispatchready_funnel"
+    }
+  ],
   "vars": {
     "NEXT_PUBLIC_APP_URL": "https://dispatchready.org",
     "SUPPORT_EMAIL": "support@dispatchready.org"

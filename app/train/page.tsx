@@ -3,6 +3,7 @@
 import { useEffect, useEffectEvent, useMemo, useState } from 'react'
 import { ArrowRight, BellRing, Brain, Check, FileText, Headphones, Keyboard, Play, Volume2 } from 'lucide-react'
 import Link from 'next/link'
+import { trackFunnelEvent } from '@/lib/analytics'
 import { saveDrillResult, type DrillType } from '@/lib/progress'
 import { speakEnglish } from '@/lib/english-speech'
 import {
@@ -19,7 +20,7 @@ import {
   type TrainingDifficulty,
 } from '@/lib/generators/dispatcher-drills'
 
-type TrainingDrill = Exclude<DrillType, 'simulation' | 'exam'>
+type TrainingDrill = Exclude<DrillType, 'simulation' | 'exam' | 'criticall'>
 type Drill = TrainingDrill | 'simulation'
 type Fields = RecordFields
 type SimulationStage = 'intro' | 'entry' | 'memory-show' | 'memory-answer' | 'audio' | 'summary' | 'pressure' | 'result'
@@ -55,13 +56,24 @@ export function TrainingExperience({ mode = 'training' }: { mode?: 'training' | 
   const current = examMode ? { label: 'Timed Practice Exam', detail: '20 minutes · five mixed skills' } : drillInfo[drill as TrainingDrill]
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setMounted(true), 0)
+    const timer = window.setTimeout(() => {
+      if (!examMode) {
+        const requestedDrill = new URLSearchParams(window.location.search).get('drill')
+        if (requestedDrill && requestedDrill in drillInfo) setDrill(requestedDrill as TrainingDrill)
+      }
+      setMounted(true)
+    }, 0)
     return () => window.clearTimeout(timer)
-  }, [])
+  }, [examMode])
 
-  function nextRound() { setRound((value) => value + 1) }
-  function selectDrill(next: TrainingDrill) { setDrill(next); nextRound() }
-  function selectDifficulty(next: TrainingDifficulty) { setDifficulty(next); nextRound() }
+  useEffect(() => {
+    if (!mounted || examMode) return
+    trackFunnelEvent('drill_start', { drill, difficulty })
+  }, [difficulty, drill, examMode, mounted, round])
+
+  function nextRound() { trackFunnelEvent('next_round_start', { drill, difficulty }); setRound((value) => value + 1) }
+  function selectDrill(next: TrainingDrill) { setDrill(next); setRound((value) => value + 1) }
+  function selectDifficulty(next: TrainingDifficulty) { setDifficulty(next); setRound((value) => value + 1) }
 
   return <main className="min-h-screen bg-[#f4f6f8] text-slate-950"><div className={`mx-auto gap-6 px-4 py-7 sm:px-6 lg:py-10 ${examMode ? 'max-w-4xl' : 'grid max-w-6xl lg:grid-cols-[250px_1fr]'}`}>{!examMode && <aside className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm lg:h-fit"><p className="px-3 pb-3 pt-2 font-mono text-[.65rem] font-semibold uppercase tracking-[.16em] text-slate-500">Training library</p><div className="space-y-1">{(Object.keys(drillInfo) as TrainingDrill[]).map((key) => { const item = drillInfo[key]; const Icon = item.icon; return <button type="button" key={key} onClick={() => selectDrill(key)} className={`flex w-full items-start gap-3 rounded-lg px-3 py-3 text-left transition ${drill === key ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-slate-100'}`}><Icon className={`mt-0.5 size-4 shrink-0 ${drill === key ? 'text-blue-300' : 'text-blue-700'}`} /><span><span className="block text-sm font-semibold">{item.label}</span><span className={`mt-0.5 block text-xs leading-relaxed ${drill === key ? 'text-slate-400' : 'text-slate-500'}`}>{item.detail}</span></span></button> })}</div><div className="mx-3 mt-5 border-t border-slate-200 pt-4"><p className="pt-4 font-mono text-[.65rem] font-semibold uppercase tracking-[.16em] text-slate-500">Difficulty</p><div className="mt-2 grid grid-cols-3 gap-1">{(Object.keys(difficultySettings) as TrainingDifficulty[]).map((level) => <button key={level} type="button" onClick={() => selectDifficulty(level)} className={`h-9 rounded-md text-xs font-semibold transition ${difficulty === level ? 'bg-blue-700 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{difficultySettings[level].label}</button>)}</div><Link href="/exam" className="mt-4 block rounded-md border border-blue-200 bg-blue-50 p-3 text-xs leading-relaxed text-blue-950 transition hover:bg-blue-100"><strong className="block">Ready for a timed run?</strong> Open Exam Mode for one continuous mixed-skill session.</Link><p className="mt-4 text-xs leading-relaxed text-slate-500">Every round is generated for this session and saved in this browser. Results are practice metrics, not official scores.</p></div></aside>}<section className="min-w-0 rounded-xl border border-slate-200 bg-white shadow-[0_20px_60px_-40px_rgba(15,23,42,.55)]"><div className="border-b border-slate-200 bg-[linear-gradient(120deg,#0f172a_0%,#172554_100%)] px-6 py-6 text-white sm:px-8"><p className="font-mono text-xs uppercase tracking-[.18em] text-blue-300">{current.label} · {examMode ? 'Standard difficulty' : drill === 'typing' ? '60 seconds' : difficultySettings[difficulty].label}</p><h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">{examMode ? 'One uninterrupted timed practice exam.' : 'Train one ability at a time.'}</h1><p className="mt-2 text-sm leading-relaxed text-slate-300">{examMode ? 'Complete four mixed cycles in 20 minutes. Your result is a practice metric only, never an official score.' : 'Repeat the round until precision feels automatic, then layer in the interruption.'}</p>{examMode && <Link href="/train" className="mt-4 inline-flex text-sm font-semibold text-blue-200 underline-offset-4 hover:underline">Return to Training Mode</Link>}</div><div className="p-6 sm:p-8">{!mounted ? <div className="min-h-80 animate-pulse rounded-lg bg-slate-100" /> : <>{drill === 'entry' && <EntryRound key={round} difficulty={difficulty} onNext={nextRound} />}{drill === 'typing' && <TypingRound key={round} onNext={nextRound} />}{drill === 'memory' && <MemoryRound key={round} difficulty={difficulty} onNext={nextRound} />}{drill === 'audio' && <AudioRound key={round} difficulty={difficulty} onNext={nextRound} />}{drill === 'summary' && <SummaryRound key={round} difficulty={difficulty} onNext={nextRound} />}{drill === 'pressure' && <PressureRound key={round} difficulty={difficulty} onNext={nextRound} />}{drill === 'simulation' && <TimedSimulationRound key={round} difficulty="normal" examMode={examMode} onNext={nextRound} />}</>}</div></section></div></main>
 }
@@ -165,7 +177,7 @@ function TimedSimulationRound({ onNext, difficulty, examMode = false }: { onNext
     setCycleScores(nextScores); setCycle((value) => value + 1); resetCycle()
   }
 
-  if (stage === 'intro') return <><div className="rounded-lg border border-blue-200 bg-blue-50 p-5"><p className="font-mono text-xs font-semibold uppercase tracking-[.16em] text-blue-700">{examMode ? '20-minute timed practice exam' : '20-minute full simulation'}</p><p className="mt-2 text-sm leading-relaxed text-slate-700">Complete four mixed cycles. Each cycle includes data entry, memory, audio detail entry, call summarization, and an interruption decision. The session timer runs continuously once you start.</p></div><RoundButton label={examMode ? 'Start timed practice exam' : 'Start 20-minute simulation'} onClick={() => setStage('entry')} /></>
+  if (stage === 'intro') return <><div className="rounded-lg border border-blue-200 bg-blue-50 p-5"><p className="font-mono text-xs font-semibold uppercase tracking-[.16em] text-blue-700">{examMode ? '20-minute timed practice exam' : '20-minute full simulation'}</p><p className="mt-2 text-sm leading-relaxed text-slate-700">Complete four mixed cycles. Each cycle includes data entry, memory, audio detail entry, call summarization, and an interruption decision. The session timer runs continuously once you start.</p></div><RoundButton label={examMode ? 'Start timed practice exam' : 'Start 20-minute simulation'} onClick={() => { if (examMode) trackFunnelEvent('exam_start', { drill: 'exam', difficulty }); setStage('entry') }} /></>
   if (stage === 'result') { const allScores = [...cycleScores]; const focus = lowestSimulationSkill(allScores); return <><div className="rounded-lg border border-slate-200 bg-slate-50 p-5"><p className="font-mono text-xs uppercase tracking-[.16em] text-slate-500">Session complete</p><div className="mt-2 flex items-end gap-3"><strong className="font-mono text-5xl tracking-tight">{finalScore ?? 0}</strong><span className="mb-1 text-slate-500">/ 100</span></div><p className="mt-3 text-sm text-slate-600">{remaining === 0 ? 'Time expired before the session was complete.' : `Completed ${cycleScores.length} of ${SIMULATION_CYCLES} mixed cycles.`}</p><div className="mt-5 grid gap-3 sm:grid-cols-2">{simulationAverages(allScores).map(([label, value]) => <div key={label} className="rounded-md border border-slate-200 bg-white p-3"><p className="font-mono text-xs uppercase tracking-wider text-slate-500">{label}</p><p className="mt-1 font-mono text-xl font-bold">{value}%</p></div>)}</div><p className="mt-5 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">Recommended focus: <strong>{focus}</strong>. Return to that individual drill before your next mixed session.</p></div><Result value={finalScore ?? 0} label="Simulation score" onNext={onNext} /></> }
 
   const taskNumber = stage === 'entry' ? 1 : stage.startsWith('memory') ? 2 : stage === 'audio' ? 3 : stage === 'summary' ? 4 : 5

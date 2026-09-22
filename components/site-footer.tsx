@@ -2,7 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 
 const footerLinks = [
-  { heading: 'Practice tools', links: [{ label: 'Training mode', href: '/train' }, { label: 'Timed practice exam', href: '/exam' }, { label: 'Free diagnostic', href: '/assessment' }, { label: 'My progress', href: '/progress' }] },
+  { heading: 'Practice tools', links: [{ label: 'CritiCall practice', href: '/criticall-test' }, { label: 'Training mode', href: '/train' }, { label: 'Timed practice exam', href: '/exam' }, { label: 'Free diagnostic', href: '/assessment' }, { label: 'My progress', href: '/progress' }] },
   { heading: 'Product', links: [{ label: 'How it works', href: '/#how-it-works' }, { label: 'Training modules', href: '/#modules' }, { label: 'Readiness report', href: '/#report' }, { label: 'Free beta', href: '/#pricing' }] },
   { heading: 'Company', links: [{ label: 'Contact', href: '/contact' }, { label: 'Privacy', href: '/privacy' }, { label: 'Terms', href: '/terms' }, { label: 'Refund policy', href: '/refunds' }] },
 ]

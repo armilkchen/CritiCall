@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Brain, ClipboardCheck, Headphones, Keyboard, Layers, FileText, TimerReset } from 'lucide-react'
 import { clearProgress, loadProgress, type DrillType, type ProgressData } from '@/lib/progress'
+import { trackFunnelEvent } from '@/lib/analytics'
 
 const drillLabels: Record<DrillType, string> = {
   entry: 'Data Entry',
@@ -14,6 +15,7 @@ const drillLabels: Record<DrillType, string> = {
   pressure: 'Pressure Drill',
   simulation: 'Full Simulation',
   exam: 'Timed Practice Exam',
+  criticall: 'CritiCall Skills Diagnostic',
 }
 
 const drillIcons = {
@@ -25,6 +27,7 @@ const drillIcons = {
   pressure: Layers,
   simulation: TimerReset,
   exam: TimerReset,
+  criticall: ClipboardCheck,
 }
 
 const emptyProgress: ProgressData = { assessments: [], drills: [] }
@@ -47,6 +50,7 @@ export default function ProgressPage() {
   const [progress, setProgress] = useState<ProgressData | null>(null)
 
   useEffect(() => {
+    trackFunnelEvent('progress_view')
     const timeout = window.setTimeout(() => setProgress(loadProgress()), 0)
     return () => window.clearTimeout(timeout)
   }, [])

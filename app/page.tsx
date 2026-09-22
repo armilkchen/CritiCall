@@ -6,6 +6,14 @@ import { Testimonials } from '@/components/landing/testimonials'
 import { Pricing } from '@/components/landing/pricing'
 import { Faq } from '@/components/landing/faq'
 import { CtaFooter } from '@/components/landing/cta-footer'
+import { createSeoMetadata } from '@/lib/seo'
+
+export const metadata = createSeoMetadata({
+  title: 'DispatchReady — Free 911 Dispatcher Test Prep',
+  description: 'Free 911 dispatcher test practice for typing, data entry, audio recall, memory, call summaries, and multitasking under pressure.',
+  path: '/',
+  keywords: ['911 dispatcher test practice', 'dispatcher test prep', 'CritiCall practice test'],
+})
 
 export default function Page() {
   return (

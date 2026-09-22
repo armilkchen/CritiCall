@@ -14,6 +14,7 @@ import {
   Volume2,
 } from 'lucide-react'
 import { saveAssessmentResult } from '@/lib/progress'
+import { trackFunnelEvent } from '@/lib/analytics'
 import { speakEnglish } from '@/lib/english-speech'
 import {
   generateDataEntryScenario,
@@ -193,7 +194,7 @@ export function PressureAssessment() {
     )
   }
 
-  if (stage === 'intro') return <Intro onStart={() => setStage('entry')} />
+  if (stage === 'intro') return <Intro onStart={() => { trackFunnelEvent('diagnostic_start'); setStage('entry') }} />
 
   return (
     <main className="min-h-screen bg-[#f4f6f8] px-4 py-6 sm:px-6 lg:py-10">

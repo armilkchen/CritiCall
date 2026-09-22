@@ -46,10 +46,10 @@ export function Hero() {
               <ArrowRight className="size-4" aria-hidden="true" />
             </a>
             <a
-              href="#how-it-works"
+              href="/criticall-test"
               className="inline-flex h-12 items-center justify-center rounded-lg border border-border bg-card px-6 text-base font-medium text-foreground transition hover:bg-muted"
             >
-              See how it works
+              Free CritiCall practice
             </a>
           </div>
 

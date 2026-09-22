@@ -1,3 +1,5 @@
+import { trackFunnelEvent } from '@/lib/analytics'
+
 export type AssessmentResult = {
   id: string
   completedAt: string
@@ -10,7 +12,7 @@ export type AssessmentResult = {
   decisionTimedOut: boolean
 }
 
-export type DrillType = 'entry' | 'typing' | 'memory' | 'audio' | 'summary' | 'pressure' | 'simulation' | 'exam'
+export type DrillType = 'entry' | 'typing' | 'memory' | 'audio' | 'summary' | 'pressure' | 'simulation' | 'exam' | 'criticall'
 
 export type DrillResult = {
   id: string
@@ -69,6 +71,7 @@ export function saveAssessmentResult(result: Omit<AssessmentResult, 'id' | 'comp
     ...progress,
     assessments: [assessment, ...progress.assessments].slice(0, 20),
   })
+  trackFunnelEvent('diagnostic_complete')
 
   return assessment
 }
@@ -88,6 +91,7 @@ export function saveDrillResult(drill: DrillType, score: number, difficulty?: Dr
     ...progress,
     drills: [result, ...progress.drills].slice(0, 100),
   })
+  trackFunnelEvent(drill === 'exam' ? 'exam_complete' : 'drill_complete', { drill, difficulty })
 
   return result
 }

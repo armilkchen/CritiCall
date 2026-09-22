@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 const navLinks = [
+  { label: 'CritiCall Practice', href: '/criticall-test' },
   { label: 'Training Mode', href: '/train' },
   { label: 'Exam Mode', href: '/exam' },
   { label: 'Free diagnostic', href: '/assessment' },

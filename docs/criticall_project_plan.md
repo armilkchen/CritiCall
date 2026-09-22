@@ -1413,3 +1413,176 @@ MVP 不需要实现所有官方模块，但长期训练引擎应该支持按模�
 -   [Candidate Test Preparation Guide 2023 (PDF)](https://criticall911.com/hubfs/Criticall-Website-Files/CritiCall_Candidate_Test_Preparation_Guide_2023.pdf)
 -   [Test List and Integrated Resources (PDF)](https://criticall911.com/hubfs/Criticall-Website-Files/TestGenius-CritiCall-Test-List-and-Integrated-Resources.pdf)
 -   [CritiCall and the Dispatcher Applicant FAQ](https://criticall911.com/company/news/criticall-dispatcher-applicant)
+
+## 18. 2026-09-22：免费优先的 SEO 获客 MVP 决策
+
+本节记录当前已经确认的上线策略。若本节与前文的早期付费 MVP、Stripe、邮件订阅或批量
+SEO 页面设想冲突，以本节为准。
+
+### 18.1 当前决策
+
+SEO 获客 MVP 只规划两个新增工具页，但不代表网站只保留两个内页：
+
+1.  **第一优先级：`/criticall-test`**；
+2.  **第二优先级：`/911-dispatcher-typing-test`**，仅在第一页上线并取得首批行为和
+    Search Console 数据后开发。
+
+现有产品页继续保留：
+
+-   `/assessment`：通用能力诊断；
+-   `/train`：专项训练工作区；
+-   `/exam`：完整限时模拟；
+-   `/progress`：本地进度页，保持 `noindex`；
+-   法律和联系页面。
+
+`/criticall-test` 是 CritiCall 搜索意图的唯一 canonical owner。不要再创建内容高度重叠的
+`/criticall-practice-test`、`/guides/criticall-test-prep` 或其他精确匹配变体页。
+
+### 18.2 第一页的定位与 TDH
+
+`/criticall-test` 是一个可直接使用的免费诊断工具页，不是单纯的 SEO 文章。
+
+-   **Title**：`Free CritiCall Practice Test for 911 Dispatchers`
+-   **Description**：`Free CritiCall practice test for 911 dispatchers: 12 original sample tasks, instant skill score, no sign-up, and a recommended next practice drill.`
+-   **H1**：`Free CritiCall Practice Test for 911 Dispatchers`
+-   不添加 `keywords` meta。
+
+页面只承接同一 CritiCall / 911 dispatcher practice 搜索意图簇。标题、H1 和正文自然描述
+用户任务即可，不为每个词序变体创建页面，也不机械重复关键词。
+
+### 18.3 页面结构
+
+页面按以下顺序实现：
+
+1.  H1、免费和无需注册的明确承诺，以及醒目的开始按钮；
+2.  一套 10--12 题的原创、限时或分阶段免费诊断；
+3.  即时总分和按能力拆分的诊断结果；
+4.  根据薄弱能力链接到现有 `/train` 对应专项，并提供重新生成一轮的入口；
+5.  `What Is the CritiCall Test?`，使用官方公开资料解释测试可由机构自行组合；
+6.  `How to Prepare for the CritiCall Test`，提供实际、可执行的训练方法；
+7.  FAQ，回答是否官方、是否免费、是否需要注册、各机构测试是否相同等问题；
+8.  相关入口：Assessment、Training、Exam 和后续 Typing Test。
+
+免费互动内容必须在 DispatchReady 自己的域名和代码中运行，不使用第三方 iframe 承载题目、
+判分或结果。第一版不要求两套固定 A/B 题；优先使用现有生成引擎生成可重复训练的新一轮，
+同时保证难度和评分口径稳定。
+
+### 18.4 题型蓝图是开发前置条件
+
+开始写题前，先完成题型蓝图。每个题型必须定义：
+
+-   训练的公开能力类别；
+-   页面交互方式；
+-   题量和预计用时；
+-   难度和生成规则；
+-   评分权重与部分得分规则；
+-   结果对应的专项训练入口；
+-   支撑该设计的官方公开来源；
+-   音频不可用、计时结束和移动端情况下的降级行为。
+
+题目必须原创。可以依据官方公开的能力和操作说明设计练习，但不得复制官方题目、竞争对手
+题目、截图、答案或受保护界面。
+
+### 18.5 合规和表述边界
+
+页面首屏附近及页脚必须明确说明：
+
+> Independently created practice based on publicly described dispatcher skills. Not affiliated with or endorsed by CritiCall or Biddle Consulting Group.
+
+CritiCall 官方表示其软件包含 20 多种测试，各机构会选择不同组合。因此不得声称：
+
+-   这是官方 CritiCall practice test；
+-   题目来自真实考试或与真实考试完全相同；
+-   完整覆盖固定的“16 个官方题型”；
+-   分数是官方成绩或能够保证通过、录用。
+
+可以表述为基于官方公开能力说明独立制作的 dispatcher skills practice，并提醒用户向招聘机构
+确认自己的具体测试安排。
+
+### 18.6 当前明确延期的范围
+
+在免费产品获得真实使用数据之前不开发：
+
+-   Stripe、付费墙、访问期限和付费题库；
+-   用户账户和订阅制；
+-   邮件订阅；
+-   `/data-entry-test`；
+-   `/pst-test`；
+-   `/ntn-practice-test`；
+-   answers 页面、低搜索需求页面或批量关键词页。
+
+`/911-dispatcher-typing-test` 作为第二个工具页保留在路线图中，但必须是可工作的在线测速工具，
+而不是一篇占位文章。
+
+### 18.7 Sitemap 与页面发现
+
+Sitemap 应包含所有希望被索引的高质量 canonical 页面，而不是为了“集中权重”只留下首页和
+`/criticall-test`。`/progress` 等不适合搜索落地的页面继续保持 `noindex` 并从 sitemap 排除。
+
+首页、导航或相关训练结果必须给 `/criticall-test` 提供可发现的内部链接；该页也必须回链到
+Assessment、Training 和 Exam，形成：
+
+``` text
+Organic landing → free diagnostic → skill result → focused drill → next round → exam → local progress
+```
+
+### 18.8 数据验证和成功标准
+
+关键词月搜索量、KD、DR、预计流量和“进入前十所需引用域”等第三方数据只用于决定优先级，
+不作为排名承诺。保存数据工具、地区、设备和查询日期；上线后的决策以 Search Console 和站内
+匿名漏斗事件为准。
+
+第一阶段主要事件：
+
+-   `diagnostic_start`；
+-   `diagnostic_complete`；
+-   `drill_start`；
+-   `drill_complete`；
+-   `next_round_start`；
+-   `exam_start`；
+-   `exam_complete`；
+-   `progress_view`。
+
+第一轮不以排名或收入为唯一成功标准。优先观察：
+
+-   `/criticall-test` 访问到测试开始的转化率；
+-   测试开始到完成的转化率；
+-   完成后进入推荐专项训练的比例；
+-   开始第二轮或 Exam Mode 的比例；
+-   Search Console 是否出现目标查询的 impressions 和 clicks。
+
+只有第一页能够稳定让真实用户开始并完成训练后，才进入
+`/911-dispatcher-typing-test` 或重新评估付费功能。
+
+### 18.9 `/criticall-test` 首版题型蓝图
+
+首版使用现有程序生成器生成一次 12 个计分项的练习，预计完成时间 6--8 分钟。四个能力类别
+等权，各占总分 25%，避免字段较多的数据录入类别自然压过其他能力。
+
+| 计分项 | 能力类别 | 交互 | 数量 | 类别评分 | 结果训练入口 |
+| --- | --- | --- | ---: | --- | --- |
+| 1--4 | Visual Data Entry | 阅读一条原创记录并把 name、address、phone、plate 输入正确字段 | 4 | 每个字段 25 分 | `/train?drill=entry` |
+| 5 | Short-Term Memory | 显示 6 位字母数字代码 3.5 秒，隐藏后准确输入 | 1 | 完全正确 100，否则 0 | `/train?drill=memory` |
+| 6--9 | Audio Data Entry | 英语浏览器语音逐位读出原创 caller record，输入四个字段 | 4 | 每个字段 25 分 | `/train?drill=audio` |
+| 10--12 | Rapid Decision Making | 阅读三条原创 incident，依据页面给出的四条规则在 15 秒内选择 Police、Fire、EMS 或 Utility | 3 | 正确题数 / 3 | `/train?drill=pressure` |
+
+总分计算：
+
+``` text
+overall = round((visual_entry + memory + audio_entry + decision) / 4)
+```
+
+结果页显示总分和四个类别分数，但不设置“官方及格线”。最低分能力决定首要训练建议；同分时
+按 Data Entry、Memory、Audio、Decision 的顺序给出一个明确动作。完成结果保存为本地
+`CritiCall Skills Diagnostic` 练习记录，不进入任何用户数据库。
+
+降级和边界：
+
+-   浏览器缺少英语语音时，解释问题并允许显示 transcript；使用 transcript 后该部分属于
+    visual fallback，页面不得把它描述为有效的听力测量；
+-   Decision 未在 15 秒内作答按错误计分，并显示正确的 practice rule；
+-   空字段按错误计分，不阻止用户完成；
+-   手机端使用单列字段和两列/四列响应按钮；
+-   重新生成一轮必须产生新的 record、memory code 和 decision scenarios；
+-   所有文本、数据和 incident 均由 DispatchReady 原创生成器产生；
+-   首版不包含地图、阅读理解、拼写、校对、概率或官方界面仿制，这些不是本页上线阻塞项。

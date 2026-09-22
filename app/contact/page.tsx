@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { LegalPage, LegalSection } from '@/components/legal/legal-page'
 
-export const metadata: Metadata = { title: 'Contact | DispatchReady' }
+export const metadata: Metadata = { title: 'Contact | DispatchReady', description: 'Contact DispatchReady about product, privacy, or accessibility questions.', alternates: { canonical: '/contact' } }
 
 export default function ContactPage() {
   const supportEmail = process.env.SUPPORT_EMAIL?.trim()
