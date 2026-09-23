@@ -34,6 +34,10 @@ const faq = [
     question: 'Does this free test include CritiCall sample questions?',
     answer: 'It includes original dispatcher practice questions and data-entry tasks based on publicly described skills. They are not official, copied, recalled, or leaked CritiCall questions.',
   },
+  {
+    question: 'How long is the CritiCall test?',
+    answer: 'There is no single universal length because hiring agencies can select different CritiCall modules and configurations. Check your agency instructions or test invitation for the expected duration. The free DispatchReady diagnostic on this page takes about 6–8 minutes.',
+  },
 ]
 
 export default function CriticallTestPage() {
@@ -83,6 +87,18 @@ export default function CriticallTestPage() {
             <p className="mt-3 leading-relaxed text-slate-600">Blank or incorrect fields receive no credit. This is a practice diagnostic, not an official exam or hiring prediction.</p>
           </div>
           <CriticallPracticeTest />
+        </div>
+      </section>
+
+      <section className="border-b border-slate-200 px-4 py-14 sm:px-6 lg:py-20">
+        <div className="mx-auto max-w-4xl">
+          <p className="font-mono text-xs font-semibold uppercase tracking-[.18em] text-blue-700">Choosing useful practice</p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight">What makes a free CritiCall practice test useful?</h2>
+          <div className="mt-5 space-y-4 text-base leading-7 text-slate-600">
+            <p>A useful practice test should make you perform the skills, not just read tips or answer general trivia. Look for exact data entry, short-term recall, English listening, and rule-based decisions, followed by feedback that separates those abilities instead of hiding them inside one total score.</p>
+            <p>Good practice should also support another meaningful attempt. DispatchReady generates fresh caller records, memory codes, and decision scenarios for each run, then recommends a focused drill for the category that needs the most work. That makes the result actionable while keeping the questions original and independent from any official exam.</p>
+            <p>No free 911 dispatcher practice test can predict an agency result. Use it to build accuracy and identify a training priority, then follow the instructions from your hiring agency for its actual modules, timing, and passing standards.</p>
+          </div>
         </div>
       </section>
 
