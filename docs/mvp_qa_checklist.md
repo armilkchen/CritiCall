@@ -36,7 +36,7 @@ Run this checklist on a deployed preview before each public release. Record the 
 ## SEO discovery and measurement
 
 - [ ] `/criticall-test` has a self-referencing canonical and appears once in `sitemap.xml` after publication.
-- [ ] The sitemap continues to include every other useful, canonical, indexable product and policy page; `/progress` remains excluded and `noindex`.
+- [ ] The sitemap contains only `/`, `/criticall-test`, `/assessment`, `/train`, and `/exam`; `/progress`, `/privacy`, `/terms`, `/refunds`, and `/contact` remain excluded and use `noindex, follow`.
 - [ ] `robots.txt` allows crawling of the public page and references the production sitemap.
 - [ ] Google Search Console URL Inspection can render the interactive page and its supporting copy.
 - [ ] `diagnostic_start` and `diagnostic_complete` are recorded without answers, scores, caller details, or persistent user identifiers.

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { LegalPage, LegalSection } from '@/components/legal/legal-page'
 
-export const metadata: Metadata = { title: 'Terms of Use | DispatchReady', description: 'Terms for using the independent DispatchReady dispatcher skills practice service.', alternates: { canonical: '/terms' } }
+export const metadata: Metadata = { title: 'Terms of Use | DispatchReady', description: 'Terms for using the independent DispatchReady dispatcher skills practice service.', alternates: { canonical: '/terms' }, robots: { index: false, follow: true } }
 
 export default function TermsPage() {
   return <LegalPage eyebrow="Legal" title="Terms of Use" updated="August 22, 2026">

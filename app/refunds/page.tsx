@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { LegalPage, LegalSection } from '@/components/legal/legal-page'
 
-export const metadata: Metadata = { title: 'Refund Policy | DispatchReady', description: 'DispatchReady is currently a free public beta and does not process purchases.', alternates: { canonical: '/refunds' } }
+export const metadata: Metadata = { title: 'Refund Policy | DispatchReady', description: 'DispatchReady is currently a free public beta and does not process purchases.', alternates: { canonical: '/refunds' }, robots: { index: false, follow: true } }
 
 export default function RefundsPage() {
   return <LegalPage eyebrow="Legal" title="Refund Policy" updated="August 22, 2026">

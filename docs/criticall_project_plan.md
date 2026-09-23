@@ -1517,7 +1517,9 @@ CritiCall 官方表示其软件包含 20 多种测试，各机构会选择不同
 ### 18.7 Sitemap 与页面发现
 
 Sitemap 应包含所有希望被索引的高质量 canonical 页面，而不是为了“集中权重”只留下首页和
-`/criticall-test`。`/progress` 等不适合搜索落地的页面继续保持 `noindex` 并从 sitemap 排除。
+`/criticall-test`。当前 sitemap 只包含 `/`、`/criticall-test`、`/assessment`、`/train` 和
+`/exam`。`/progress`、`/privacy`、`/terms`、`/refunds`、`/contact` 保持可访问并允许链接
+跟踪，但使用 `noindex, follow` 且从 sitemap 排除。
 
 首页、导航或相关训练结果必须给 `/criticall-test` 提供可发现的内部链接；该页也必须回链到
 Assessment、Training 和 Exam，形成：

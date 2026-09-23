@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { LegalPage, LegalSection } from '@/components/legal/legal-page'
 
-export const metadata: Metadata = { title: 'Privacy Policy | DispatchReady', description: 'Learn how DispatchReady handles locally stored practice progress and aggregate website analytics.', alternates: { canonical: '/privacy' } }
+export const metadata: Metadata = { title: 'Privacy Policy | DispatchReady', description: 'Learn how DispatchReady handles locally stored practice progress and aggregate website analytics.', alternates: { canonical: '/privacy' }, robots: { index: false, follow: true } }
 
 export default function PrivacyPage() {
   return <LegalPage eyebrow="Legal" title="Privacy Policy" updated="August 22, 2026">
