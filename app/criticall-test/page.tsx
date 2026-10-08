@@ -63,7 +63,7 @@ export default function CriticallTestPage() {
             <p className="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">Complete 12 original sample tasks in a free 911 dispatcher practice test covering visual data entry, short-term memory, audio detail entry, and rapid dispatch decisions. No sign-up or payment.</p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <a href="#free-practice-test" className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-blue-700 px-6 text-sm font-semibold text-white transition hover:bg-blue-800">Start the free practice test <ArrowRight className="size-4" /></a>
-              <Link href="/assessment" className="inline-flex h-12 items-center justify-center rounded-md border border-slate-300 bg-white px-6 text-sm font-semibold text-slate-800 transition hover:bg-slate-50">Take the pressure assessment</Link>
+              <Link href="/assessment" className="inline-flex h-12 items-center justify-center rounded-md border border-slate-300 bg-white px-6 text-sm font-semibold text-slate-800 transition hover:bg-slate-50">Take the free dispatcher skills assessment</Link>
             </div>
             <p className="mt-5 max-w-2xl text-xs leading-relaxed text-slate-500">Independently created practice based on publicly described dispatcher skills. Not affiliated with or endorsed by CritiCall or Biddle Consulting Group.</p>
           </div>
@@ -154,7 +154,7 @@ export default function CriticallTestPage() {
           </div>
           <div className="mt-8 flex flex-col gap-3 rounded-xl bg-slate-950 p-6 text-white sm:flex-row sm:items-center sm:justify-between sm:p-8">
             <div><h2 className="text-xl font-semibold">Keep training after the diagnostic.</h2><p className="mt-1 text-sm text-slate-300">Repeat one weak skill, then combine the work in Exam Mode.</p></div>
-            <div className="flex gap-2"><Link href="/train" className="inline-flex h-11 items-center rounded-md bg-white px-4 text-sm font-semibold text-slate-950">Open training</Link><Link href="/exam" className="inline-flex h-11 items-center rounded-md border border-white/20 px-4 text-sm font-semibold text-white">Exam Mode</Link></div>
+            <div className="flex flex-wrap gap-2"><Link href="/train" className="inline-flex h-11 items-center rounded-md bg-white px-4 text-sm font-semibold text-slate-950">911 dispatcher practice drills</Link><Link href="/exam" className="inline-flex h-11 items-center rounded-md border border-white/20 px-4 text-sm font-semibold text-white">Timed dispatcher practice exam</Link></div>
           </div>
         </div>
       </section>
