@@ -213,3 +213,123 @@ export function generateCallSummaryScenario(difficulty: TrainingDifficulty = 'no
 export function generateTypingPassage(random = Math.random) {
   return choose(typingPassages, random)
 }
+
+export const copyEntryFields = ['firstName', 'lastName', 'phone', 'address', 'city', 'zip', 'vin', 'plate', 'license'] as const
+
+export type CopyEntryField = (typeof copyEntryFields)[number]
+
+export const copyEntryLabels: Record<CopyEntryField, string> = {
+  firstName: 'First name',
+  lastName: 'Last name',
+  phone: 'Phone',
+  address: 'Street address',
+  city: 'City',
+  zip: 'ZIP',
+  vin: 'VIN',
+  plate: 'Plate',
+  license: "Driver's license",
+}
+
+export type CopyEntryRecord = Record<CopyEntryField, string>
+
+export type CopyEntryRound = {
+  record: CopyEntryRecord
+  requested: CopyEntryField[]
+}
+
+export type CopyEntryFieldStatus = 'correct' | 'incorrect' | 'extra' | 'blank'
+
+export type CopyEntryGrade = {
+  score: number
+  fields: Array<{ key: CopyEntryField; status: CopyEntryFieldStatus; expected: string }>
+}
+
+const copyFirstNames = ['Avery', 'Blake', 'Cameron', 'Devon', 'Ellis', 'Finley', 'Gray', 'Harper', 'Indigo', 'Jules', 'Kendall', 'Logan', 'Marlow', 'Nico', 'Oakley', 'Parker', 'Quinn', 'Reese', 'Sawyer', 'Tatum', 'Uma', 'Val', 'Winter', 'Yael', 'Arden', 'Briar', 'Casey', 'Drew', 'Emery', 'Frankie']
+const copyLastNames = ['Adler', 'Brooks', 'Cho', 'Dalton', 'Ellison', 'Foster', 'Garcia', 'Holt', 'Ibarra', 'Jensen', 'Keller', 'Lang', 'Morales', 'Nguyen', 'Okada', 'Patel', 'Quincy', 'Rowe', 'Shah', 'Tran', 'Ueda', 'Voss', 'Walsh', 'Young', 'Zimmer', 'Brennan', 'Carter', 'Diaz', 'Ellis', 'Frost']
+const copyStreets = ['Harbor', 'Maple', 'Willow', 'Ridge', 'Pine', 'Cedar', 'Oak', 'Jefferson', 'Meadow', 'Summit', 'Birch', 'Cinder', 'Dover', 'Elm', 'Fulton', 'Grant', 'Highland', 'Ivy', 'Juniper', 'Keeler', 'Lark', 'Mercer']
+const copyCities = ['Ashford', 'Bayview', 'Cedar Falls', 'Dover', 'Easton', 'Fairview', 'Glenwood', 'Harbor City', 'Irving', 'Jasper', 'Kingsport', 'Lakewood', 'Midvale', 'Northfield', 'Oakridge', 'Pinehurst', 'Redwood', 'Silverton', 'Westbrook', 'York']
+const vinCharacters = 'ABCDEFGHJKLMNPRSTUVWXYZ0123456789'
+const plateLettersWithConfusables = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
+export function normalizeCopyEntry(value: string) {
+  return value.toUpperCase().replace(/[^A-Z0-9]/g, '')
+}
+
+export function copyEntryInstruction(requested: CopyEntryField[]) {
+  if (requested.length === copyEntryFields.length) return 'Enter every field.'
+  const names = requested.map((key) => copyEntryLabels[key])
+  if (names.length === 1) return `Enter only: ${names[0]}.`
+  if (names.length === 2) return `Enter only: ${names[0]} and ${names[1]}.`
+  return `Enter only: ${names.slice(0, -1).join(', ')}, and ${names.at(-1)}.`
+}
+
+export function scoreCopyEntry(round: CopyEntryRound, response: CopyEntryRecord): CopyEntryGrade {
+  const requested = new Set(round.requested)
+  const fields = copyEntryFields.map((key) => {
+    const expected = round.record[key]
+    const filled = response[key].trim().length > 0
+    const matches = normalizeCopyEntry(response[key]) === normalizeCopyEntry(expected) && normalizeCopyEntry(expected).length > 0
+    const status: CopyEntryFieldStatus = requested.has(key) ? (matches ? 'correct' : 'incorrect') : filled ? 'extra' : 'blank'
+    return { key, status, expected }
+  })
+  const correct = fields.filter((field) => field.status === 'correct').length
+  const extras = fields.filter((field) => field.status === 'extra').length
+  const denominator = round.requested.length + extras
+  return { score: denominator === 0 ? 0 : Math.round((correct / denominator) * 100), fields }
+}
+
+function generateConfusablePlate(random: () => number) {
+  const patterns = [
+    () => `${characters(3, plateLettersWithConfusables, random)}${digits(4, random)}`,
+    () => `${digits(1, random)}${characters(3, plateLettersWithConfusables, random)}${digits(3, random)}`,
+    () => `${characters(2, plateLettersWithConfusables, random)}${digits(2, random)}${characters(2, plateLettersWithConfusables, random)}`,
+    () => `${digits(3, random)}${characters(3, plateLettersWithConfusables, random)}`,
+  ]
+  const plate = choose(patterns, random)().split('')
+  const letterSlots = plate.map((character, index) => (/[A-Z]/.test(character) ? index : -1)).filter((index) => index >= 0)
+  const digitSlots = plate.map((character, index) => (/[0-9]/.test(character) ? index : -1)).filter((index) => index >= 0)
+  if (!plate.some((character) => character === 'O' || character === 'I') && letterSlots.length) plate[choose(letterSlots, random)] = random() > 0.5 ? 'O' : 'I'
+  if (!plate.some((character) => character === '0' || character === '1') && digitSlots.length) plate[choose(digitSlots, random)] = random() > 0.5 ? '0' : '1'
+  return plate.join('')
+}
+
+function generatePracticeLicense(random: () => number) {
+  const patterns = [
+    () => `${characters(1, plateLettersWithConfusables, random)}${digits(7, random)}`,
+    () => `${digits(1, random)}${characters(2, plateLettersWithConfusables, random)}${digits(6, random)}`,
+    () => `${characters(2, plateLettersWithConfusables, random)}${digits(6, random)}`,
+  ]
+  return choose(patterns, random)()
+}
+
+function chooseCopyEntryFields(random: () => number) {
+  if (random() < 0.22) return [...copyEntryFields]
+  const count = 2 + randomInt(3, random)
+  const pool = [...copyEntryFields]
+  for (let index = pool.length - 1; index > 0; index -= 1) {
+    const swap = randomInt(index + 1, random)
+    const current = pool[index]
+    pool[index] = pool[swap]
+    pool[swap] = current
+  }
+  const picked = new Set(pool.slice(0, count))
+  return copyEntryFields.filter((key) => picked.has(key))
+}
+
+export function generateCopyEntryRound(random = Math.random): CopyEntryRound {
+  const houseNumber = String(randomInt(9000, random) + 100)
+  const unit = random() > 0.55 ? ` APT ${randomInt(9, random) + 1}${choose(['A', 'B', 'C'], random)}` : ''
+  const record: CopyEntryRecord = {
+    firstName: choose(copyFirstNames, random).toUpperCase(),
+    lastName: choose(copyLastNames, random).toUpperCase(),
+    phone: `555-${digits(3, random)}-${digits(4, random)}`,
+    address: `${houseNumber} ${choose(directions, random).toUpperCase()} ${choose(copyStreets, random).toUpperCase()} ${choose(streetTypes, random).toUpperCase()}${unit}`,
+    city: choose(copyCities, random).toUpperCase(),
+    zip: digits(5, random),
+    vin: characters(17, vinCharacters, random),
+    plate: generateConfusablePlate(random),
+    license: generatePracticeLicense(random),
+  }
+
+  return { record, requested: chooseCopyEntryFields(random) }
+}

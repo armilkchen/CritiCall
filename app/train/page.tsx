@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useEffectEvent, useMemo, useState } from 'react'
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { ArrowRight, BellRing, Brain, Check, FileText, Headphones, Keyboard, Play, Volume2 } from 'lucide-react'
 import Link from 'next/link'
 import { trackFunnelEvent } from '@/lib/analytics'
@@ -12,10 +12,17 @@ import {
   generateMemoryCode,
   generatePressureScenario,
   generateTypingPassage,
+  generateCopyEntryRound,
+  copyEntryFields,
+  copyEntryInstruction,
+  copyEntryLabels,
+  scoreCopyEntry,
   recordToAudioScript,
   difficultySettings,
   type CallSummaryScenario,
   type DispatchService,
+  type CopyEntryField,
+  type CopyEntryRecord,
   type RecordFields,
   type TrainingDifficulty,
 } from '@/lib/generators/dispatcher-drills'
@@ -30,7 +37,7 @@ const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '
 const services: DispatchService[] = ['Police', 'Fire', 'EMS', 'Utility']
 
 const drillInfo: Record<TrainingDrill, { label: string; detail: string; icon: typeof Keyboard }> = {
-  entry: { label: 'Data Entry', detail: 'Structured details · accuracy first', icon: Keyboard },
+  entry: { label: 'Data Entry', detail: 'Full record · named fields only', icon: Keyboard },
   typing: { label: 'Typing Accuracy', detail: '60 seconds · WPM and precision', icon: Keyboard },
   memory: { label: 'Memory Recall', detail: 'Brief visual recall', icon: Brain },
   audio: { label: 'Audio Data Entry', detail: 'Listen for exact details', icon: Headphones },
@@ -75,7 +82,7 @@ export function TrainingExperience({ mode = 'training' }: { mode?: 'training' | 
   function selectDrill(next: TrainingDrill) { setDrill(next); setRound((value) => value + 1) }
   function selectDifficulty(next: TrainingDifficulty) { setDifficulty(next); setRound((value) => value + 1) }
 
-  return <main className="min-h-screen bg-[#f4f6f8] text-slate-950"><div className={`mx-auto gap-6 px-4 py-7 sm:px-6 lg:py-10 ${examMode ? 'max-w-4xl' : 'grid max-w-6xl lg:grid-cols-[250px_1fr]'}`}>{!examMode && <aside className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm lg:h-fit"><p className="px-3 pb-3 pt-2 font-mono text-[.65rem] font-semibold uppercase tracking-[.16em] text-slate-500">Training library</p><div className="space-y-1">{(Object.keys(drillInfo) as TrainingDrill[]).map((key) => { const item = drillInfo[key]; const Icon = item.icon; return <button type="button" key={key} onClick={() => selectDrill(key)} className={`flex w-full items-start gap-3 rounded-lg px-3 py-3 text-left transition ${drill === key ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-slate-100'}`}><Icon className={`mt-0.5 size-4 shrink-0 ${drill === key ? 'text-blue-300' : 'text-blue-700'}`} /><span><span className="block text-sm font-semibold">{item.label}</span><span className={`mt-0.5 block text-xs leading-relaxed ${drill === key ? 'text-slate-400' : 'text-slate-500'}`}>{item.detail}</span></span></button> })}</div><div className="mx-3 mt-5 border-t border-slate-200 pt-4"><p className="pt-4 font-mono text-[.65rem] font-semibold uppercase tracking-[.16em] text-slate-500">Difficulty</p><div className="mt-2 grid grid-cols-3 gap-1">{(Object.keys(difficultySettings) as TrainingDifficulty[]).map((level) => <button key={level} type="button" onClick={() => selectDifficulty(level)} className={`h-9 rounded-md text-xs font-semibold transition ${difficulty === level ? 'bg-blue-700 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{difficultySettings[level].label}</button>)}</div><Link href="/exam" className="mt-4 block rounded-md border border-blue-200 bg-blue-50 p-3 text-xs leading-relaxed text-blue-950 transition hover:bg-blue-100"><strong className="block">Ready for a timed run?</strong> Open Exam Mode for one continuous mixed-skill session.</Link><p className="mt-4 text-xs leading-relaxed text-slate-500">Every round is generated for this session and saved in this browser. Results are practice metrics, not official scores.</p></div></aside>}<section className="min-w-0 rounded-xl border border-slate-200 bg-white shadow-[0_20px_60px_-40px_rgba(15,23,42,.55)]"><div className="border-b border-slate-200 bg-[linear-gradient(120deg,#0f172a_0%,#172554_100%)] px-6 py-6 text-white sm:px-8"><p className="font-mono text-xs uppercase tracking-[.18em] text-blue-300">{current.label} · {examMode ? 'Standard difficulty' : drill === 'typing' ? '60 seconds' : difficultySettings[difficulty].label}</p><h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">{examMode ? 'One uninterrupted timed practice exam.' : 'Train one ability at a time.'}</h1><p className="mt-2 text-sm leading-relaxed text-slate-300">{examMode ? 'Complete four mixed cycles in 20 minutes. Your result is a practice metric only, never an official score.' : 'Repeat the round until precision feels automatic, then layer in the interruption.'}</p><p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-300">{examMode ? <>Build a baseline first with the <Link href="/criticall-test" className="font-semibold text-blue-200 underline-offset-4 hover:underline">12-item CritiCall practice diagnostic</Link>, then return for this continuous timed session.</> : <>Unsure which skill to choose? Take the <Link href="/criticall-test" className="font-semibold text-blue-200 underline-offset-4 hover:underline">free CritiCall practice test</Link> for a four-category score and a recommended drill.</>}</p>{examMode && <Link href="/train" className="mt-4 inline-flex text-sm font-semibold text-blue-200 underline-offset-4 hover:underline">Return to Training Mode</Link>}</div><div className="p-6 sm:p-8">{!mounted ? <div className="min-h-80 animate-pulse rounded-lg bg-slate-100" /> : <>{drill === 'entry' && <EntryRound key={round} difficulty={difficulty} onNext={nextRound} />}{drill === 'typing' && <TypingRound key={round} onNext={nextRound} />}{drill === 'memory' && <MemoryRound key={round} difficulty={difficulty} onNext={nextRound} />}{drill === 'audio' && <AudioRound key={round} difficulty={difficulty} onNext={nextRound} />}{drill === 'summary' && <SummaryRound key={round} difficulty={difficulty} onNext={nextRound} />}{drill === 'pressure' && <PressureRound key={round} difficulty={difficulty} onNext={nextRound} />}{drill === 'simulation' && <TimedSimulationRound key={round} difficulty="normal" examMode={examMode} onNext={nextRound} />}</>}</div></section></div></main>
+  return <main className="min-h-screen bg-[#f4f6f8] text-slate-950"><div className={`mx-auto gap-6 px-4 py-7 sm:px-6 lg:py-10 ${examMode ? 'max-w-4xl' : 'grid max-w-6xl lg:grid-cols-[250px_1fr]'}`}>{!examMode && <aside className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm lg:h-fit"><p className="px-3 pb-3 pt-2 font-mono text-[.65rem] font-semibold uppercase tracking-[.16em] text-slate-500">Training library</p><div className="space-y-1">{(Object.keys(drillInfo) as TrainingDrill[]).map((key) => { const item = drillInfo[key]; const Icon = item.icon; return <button type="button" key={key} onClick={() => selectDrill(key)} className={`flex w-full items-start gap-3 rounded-lg px-3 py-3 text-left transition ${drill === key ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-slate-100'}`}><Icon className={`mt-0.5 size-4 shrink-0 ${drill === key ? 'text-blue-300' : 'text-blue-700'}`} /><span><span className="block text-sm font-semibold">{item.label}</span><span className={`mt-0.5 block text-xs leading-relaxed ${drill === key ? 'text-slate-400' : 'text-slate-500'}`}>{item.detail}</span></span></button> })}</div><div className="mx-3 mt-5 border-t border-slate-200 pt-4">{drill === 'entry' ? <p className="pt-4 text-xs leading-relaxed text-slate-500">Data entry is one level. Each round is a full record, and the instruction names the only fields to fill.</p> : <><p className="pt-4 font-mono text-[.65rem] font-semibold uppercase tracking-[.16em] text-slate-500">Difficulty</p><div className="mt-2 grid grid-cols-3 gap-1">{(Object.keys(difficultySettings) as TrainingDifficulty[]).map((level) => <button key={level} type="button" onClick={() => selectDifficulty(level)} className={`h-9 rounded-md text-xs font-semibold transition ${difficulty === level ? 'bg-blue-700 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{difficultySettings[level].label}</button>)}</div></>}<Link href="/exam" className="mt-4 block rounded-md border border-blue-200 bg-blue-50 p-3 text-xs leading-relaxed text-blue-950 transition hover:bg-blue-100"><strong className="block">Ready for a timed run?</strong> Open Exam Mode for one continuous mixed-skill session.</Link><p className="mt-4 text-xs leading-relaxed text-slate-500">Every round is generated for this session and saved in this browser. Results are practice metrics, not official scores.</p></div></aside>}<section className="min-w-0 rounded-xl border border-slate-200 bg-white shadow-[0_20px_60px_-40px_rgba(15,23,42,.55)]"><div className="border-b border-slate-200 bg-[linear-gradient(120deg,#0f172a_0%,#172554_100%)] px-6 py-6 text-white sm:px-8"><p className="font-mono text-xs uppercase tracking-[.18em] text-blue-300">{current.label} · {examMode ? 'Standard difficulty' : drill === 'typing' ? '60 seconds' : drill === 'entry' ? 'Full record' : difficultySettings[difficulty].label}</p><h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">{examMode ? 'One uninterrupted timed practice exam.' : 'Train one ability at a time.'}</h1><p className="mt-2 text-sm leading-relaxed text-slate-300">{examMode ? 'Complete four mixed cycles in 20 minutes. Your result is a practice metric only, never an official score.' : 'Repeat the round until precision feels automatic, then layer in the interruption.'}</p><p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-300">{examMode ? <>Build a baseline first with the <Link href="/criticall-test" className="font-semibold text-blue-200 underline-offset-4 hover:underline">12-item CritiCall practice diagnostic</Link>, then return for this continuous timed session.</> : <>Unsure which skill to choose? Take the <Link href="/criticall-test" className="font-semibold text-blue-200 underline-offset-4 hover:underline">free CritiCall practice test</Link> for a four-category score and a recommended drill.</>}</p>{examMode && <Link href="/train" className="mt-4 inline-flex text-sm font-semibold text-blue-200 underline-offset-4 hover:underline">Return to Training Mode</Link>}</div><div className="p-6 sm:p-8">{!mounted ? <div className="min-h-80 animate-pulse rounded-lg bg-slate-100" /> : <>{drill === 'entry' && <EntryRound key={round} onNext={nextRound} />}{drill === 'typing' && <TypingRound key={round} onNext={nextRound} />}{drill === 'memory' && <MemoryRound key={round} difficulty={difficulty} onNext={nextRound} />}{drill === 'audio' && <AudioRound key={round} difficulty={difficulty} onNext={nextRound} />}{drill === 'summary' && <SummaryRound key={round} difficulty={difficulty} onNext={nextRound} />}{drill === 'pressure' && <PressureRound key={round} difficulty={difficulty} onNext={nextRound} />}{drill === 'simulation' && <TimedSimulationRound key={round} difficulty="normal" examMode={examMode} onNext={nextRound} />}</>}</div></section></div></main>
 }
 
 export default function TrainPage() { return <TrainingExperience /> }
@@ -93,14 +100,82 @@ function AudioPlayer({ script, rate = difficultySettings.normal.audioRate, allow
   return <><button type="button" disabled={!allowReplay && played} onClick={play} className="flex w-full items-center gap-4 rounded-lg bg-slate-950 p-5 text-left text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-500"><span className="grid size-11 place-items-center rounded bg-blue-600">{playing ? <Volume2 className="size-5" /> : <Play className="size-5" />}</span><span><span className="block font-semibold">{playing ? 'Playing caller audio…' : !allowReplay && played ? 'Audio already played' : 'Play caller audio'}</span><span className="mt-1 block font-mono text-xs uppercase tracking-wider text-slate-400">{allowReplay ? 'Replay available · normal pace' : 'One playback only · standard pace'}</span></span></button>{unavailable && <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">An English browser voice is required for this drill. Add an English voice in your device settings or try Chrome before treating this as an audio-practice score.</p>}</>
 }
 
-function Result({ value, onNext, label = 'Accuracy' }: { value: number; onNext: () => void; label?: string }) { return <div className="mt-7 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4"><div><p className="font-mono text-[.65rem] font-semibold uppercase tracking-[.15em] text-emerald-700">Round complete</p><p className="mt-1 text-lg font-semibold text-slate-950">{label}: {value}%</p></div><button type="button" onClick={onNext} className="inline-flex h-10 items-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800">Next round <ArrowRight className="size-4" /></button></div> }
+function Result({ value, onNext, label = 'Accuracy', detail }: { value: number; onNext: () => void; label?: string; detail?: string }) { return <div className="mt-7 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4"><div><p className="font-mono text-[.65rem] font-semibold uppercase tracking-[.15em] text-emerald-700">Round complete</p><p className="mt-1 text-lg font-semibold text-slate-950">{label}: {value}%</p>{detail ? <p className="mt-1 text-sm font-medium text-slate-600">{detail}</p> : null}</div><button type="button" onClick={onNext} className="inline-flex h-10 items-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800">Next round <ArrowRight className="size-4" /></button></div> }
 function RoundButton({ label, onClick, disabled = false }: { label: string; onClick: () => void; disabled?: boolean }) { return <div className="mt-8 flex justify-end"><button type="button" disabled={disabled} onClick={onClick} className="inline-flex h-11 items-center gap-2 rounded-md bg-blue-700 px-5 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-slate-300">{label}<Check className="size-4" /></button></div> }
 
 function FieldFeedback({ answer, response }: { answer: Fields; response: Fields }) { return <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4"><p className="font-mono text-[.65rem] font-semibold uppercase tracking-[.15em] text-slate-500">Item feedback</p><div className="mt-3 grid gap-2 sm:grid-cols-2">{([['name', 'Caller name'], ['address', 'Address'], ['phone', 'Phone'], ['plate', 'Plate']] as Array<[keyof Fields, string]>).map(([key, label]) => { const correct = normalize(answer[key]) === normalize(response[key]); return <div key={key} className={`rounded-md border px-3 py-2 text-sm ${correct ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : 'border-amber-200 bg-amber-50 text-amber-950'}`}><span className="font-semibold">{label}: </span>{correct ? 'Correct' : `Expected ${answer[key]}`}</div> })}</div></div> }
 
 function SummaryFeedback({ scenario, response }: { scenario: CallSummaryScenario; response: string }) { const normalizedResponse = normalize(response); return <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4"><p className="font-mono text-[.65rem] font-semibold uppercase tracking-[.15em] text-slate-500">Item feedback</p><div className="mt-3 space-y-2">{scenario.facts.map((fact) => { const included = fact.keywords.every((keyword) => normalizedResponse.includes(normalize(keyword))); return <div key={fact.label} className={`rounded-md border px-3 py-2 text-sm ${included ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : 'border-amber-200 bg-amber-50 text-amber-950'}`}><span className="font-semibold">{fact.label}: </span>{included ? 'Covered' : `Missing (${fact.keywords.join(', ')})`}</div> })}</div></div> }
 
-function EntryRound({ onNext, difficulty }: { onNext: () => void; difficulty: TrainingDifficulty }) { const [record] = useState(() => generateDataEntryScenario(difficulty)); const [value, setValue] = useState(emptyFields); const [result, setResult] = useState<number | null>(null); function complete() { const next = fieldScore(record, value); setResult(next); saveDrillResult('entry', next, difficulty) }; return <><p className="text-sm leading-relaxed text-slate-600">Read the record, then enter the details without copying and pasting.</p><div className="mt-6"><RecordCard record={record} /></div><div className="mt-6"><DataFields value={value} onChange={setValue} disabled={result !== null} /></div>{result === null ? <RoundButton label="Score this round" onClick={complete} /> : <><FieldFeedback answer={record} response={value} /><Result value={result} onNext={onNext} /></>}</> }
+function emptyCopyEntry(): CopyEntryRecord {
+  return { firstName: '', lastName: '', phone: '', address: '', city: '', zip: '', vin: '', plate: '', license: '' }
+}
+
+function EntryRound({ onNext }: { onNext: () => void }) {
+  const [round] = useState(() => generateCopyEntryRound())
+  const [value, setValue] = useState<CopyEntryRecord>(emptyCopyEntry)
+  const [grade, setGrade] = useState<ReturnType<typeof scoreCopyEntry> | null>(null)
+  const [seconds, setSeconds] = useState<number | null>(null)
+  const startedAt = useRef(Date.now())
+  const finished = grade !== null
+
+  function updateField(key: CopyEntryField, next: string) {
+    setValue((current) => ({ ...current, [key]: next.toUpperCase() }))
+  }
+
+  function complete() {
+    const nextGrade = scoreCopyEntry(round, value)
+    setGrade(nextGrade)
+    setSeconds(Math.max(1, Math.round((Date.now() - startedAt.current) / 1000)))
+    saveDrillResult('entry', nextGrade.score)
+  }
+
+  return (
+    <>
+      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm leading-6 text-blue-950">
+        <p className="font-semibold">{copyEntryInstruction(round.requested)}</p>
+        <p className="mt-1">Letters and digits must match. Dashes in the phone number are optional. Leave every field that was not named empty. Pasting is turned off.</p>
+      </div>
+      <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4 font-mono text-sm leading-7 text-slate-800">
+        {copyEntryFields.map((key) => <div key={key}>{copyEntryLabels[key].toUpperCase()}: {round.record[key]}</div>)}
+      </div>
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        {copyEntryFields.map((key) => (
+          <label key={key} className={key === 'address' || key === 'vin' ? 'sm:col-span-2' : undefined}>
+            <span className="mb-1.5 block font-mono text-[.65rem] font-medium uppercase tracking-[.15em] text-slate-500">{copyEntryLabels[key]}</span>
+            <input
+              disabled={finished}
+              value={value[key]}
+              autoCapitalize="characters"
+              autoComplete="off"
+              spellCheck={false}
+              onPaste={(event) => event.preventDefault()}
+              onDrop={(event) => event.preventDefault()}
+              onChange={(event) => updateField(key, event.target.value)}
+              className="h-11 w-full rounded-md border border-slate-300 px-3 font-mono text-sm uppercase outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 disabled:bg-slate-100"
+            />
+          </label>
+        ))}
+      </div>
+      {grade === null || seconds === null ? <RoundButton label="Score this round" onClick={complete} /> : <><CopyEntryFeedback grade={grade} /><Result value={grade.score} detail={`${seconds} seconds`} onNext={onNext} /></>}
+    </>
+  )
+}
+
+function CopyEntryFeedback({ grade }: { grade: ReturnType<typeof scoreCopyEntry> }) {
+  return (
+    <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
+      <p className="font-mono text-[.65rem] font-semibold uppercase tracking-[.15em] text-slate-500">Item feedback</p>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        {grade.fields.map((field) => {
+          const tone = field.status === 'correct' || field.status === 'blank' ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : 'border-amber-200 bg-amber-50 text-amber-950'
+          const detail = field.status === 'correct' ? 'Correct' : field.status === 'blank' ? 'Left blank, as required' : field.status === 'extra' ? 'Not requested. Leave this blank.' : `Expected ${field.expected}`
+          return <div key={field.key} className={`rounded-md border px-3 py-2 text-sm ${tone}`}><span className="font-semibold">{copyEntryLabels[field.key]}: </span>{detail}</div>
+        })}
+      </div>
+    </div>
+  )
+}
 
 type TypingMetrics = { wpm: number; accuracy: number; correctCharacters: number; typedCharacters: number }
 function calculateTypingMetrics(passage: string, response: string, elapsedSeconds: number): TypingMetrics { const correctCharacters = Array.from(response).reduce((total, character, index) => total + Number(character === passage[index]), 0); const typedCharacters = response.length; const accuracy = typedCharacters ? Math.round((correctCharacters / typedCharacters) * 100) : 0; const wpm = Math.round(((typedCharacters / 5) / Math.max(elapsedSeconds, 1)) * 60 * (accuracy / 100)); return { wpm, accuracy, correctCharacters, typedCharacters } }
