@@ -5,7 +5,7 @@ const navLinks = [
   { label: 'CritiCall Practice', href: '/criticall-test' },
   { label: 'Training Mode', href: '/train' },
   { label: 'Exam Mode', href: '/exam' },
-  { label: 'Free diagnostic', href: '/assessment' },
+  { label: 'Free diagnostic', href: '/911-dispatcher-assessment-test' },
   { label: 'Free beta', href: '/#pricing' },
 ]
 

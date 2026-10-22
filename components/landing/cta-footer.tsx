@@ -17,7 +17,7 @@ export function CtaFooter() {
               credit card — just an honest look at your readiness.
             </p>
             <div className="mt-8 flex justify-center">
-              <a href="/assessment" className="inline-flex h-12 items-center justify-center gap-1.5 rounded-lg bg-secondary px-6 text-base font-medium text-secondary-foreground transition hover:bg-secondary/80">
+              <a href="/911-dispatcher-assessment-test" className="inline-flex h-12 items-center justify-center gap-1.5 rounded-lg bg-secondary px-6 text-base font-medium text-secondary-foreground transition hover:bg-secondary/80">
                 Take a free pressure test
                 <ArrowRight className="size-4" aria-hidden="true" />
               </a>

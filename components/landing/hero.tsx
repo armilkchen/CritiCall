@@ -41,7 +41,7 @@ export function Hero() {
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <a href="/assessment" className="inline-flex h-12 items-center justify-center gap-1.5 rounded-lg bg-primary px-6 text-base font-medium text-primary-foreground shadow-sm transition hover:bg-primary/80">
+            <a href="/911-dispatcher-assessment-test" className="inline-flex h-12 items-center justify-center gap-1.5 rounded-lg bg-primary px-6 text-base font-medium text-primary-foreground shadow-sm transition hover:bg-primary/80">
               Take a free pressure test
               <ArrowRight className="size-4" aria-hidden="true" />
             </a>

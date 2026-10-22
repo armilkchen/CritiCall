@@ -4,9 +4,7 @@ const siteUrl = 'https://dispatchready.org'
 const publicRoutes = [
   { path: '/', priority: 1, changeFrequency: 'weekly' },
   { path: '/criticall-test', priority: 0.9, changeFrequency: 'weekly' },
-  { path: '/assessment', priority: 0.9, changeFrequency: 'weekly' },
-  { path: '/train', priority: 0.9, changeFrequency: 'weekly' },
-  { path: '/exam', priority: 0.8, changeFrequency: 'weekly' },
+  { path: '/911-dispatcher-assessment-test', priority: 0.9, changeFrequency: 'weekly' },
 ] as const
 
 export default function sitemap(): MetadataRoute.Sitemap {

@@ -79,7 +79,7 @@ export default function ProgressPage() {
             <ClipboardCheck className="size-7 text-blue-700" />
             <h2 className="mt-4 text-xl font-semibold">No results saved yet</h2>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-600">Start with the short assessment to establish a baseline, then complete training rounds to build your history.</p>
-            <Link href="/assessment" className="mt-6 inline-flex h-11 items-center gap-2 rounded-md bg-blue-700 px-5 text-sm font-semibold text-white">Take the free assessment <ArrowRight className="size-4" /></Link>
+            <Link href="/911-dispatcher-assessment-test" className="mt-6 inline-flex h-11 items-center gap-2 rounded-md bg-blue-700 px-5 text-sm font-semibold text-white">Take the free assessment <ArrowRight className="size-4" /></Link>
           </section>
         ) : (
           <>
@@ -105,7 +105,7 @@ export default function ProgressPage() {
               <aside className="rounded-xl border border-slate-200 bg-slate-950 p-6 text-white shadow-sm">
                 <p className="font-mono text-[.68rem] font-semibold uppercase tracking-[.16em] text-blue-300">Latest pressure profile</p>
                 {latestAssessment ? <><div className="mt-5 flex items-end gap-3"><strong className="font-mono text-5xl">{latestAssessment.readiness}</strong><span className="mb-1 text-slate-400">/ 100</span></div><div className="mt-6 space-y-3 text-sm"><ScoreRow label="Baseline skills" value={latestAssessment.baselineScore} /><ScoreRow label="Under pressure" value={latestAssessment.pressureScore} /></div><div className="mt-6 rounded-lg border border-amber-300/20 bg-amber-300/10 p-4"><p className="text-xs uppercase tracking-wider text-amber-200">Current focus</p><p className="mt-2 font-semibold">{latestAssessment.risk}</p></div><p className="mt-5 text-xs text-slate-400">Completed {formatDate(latestAssessment.completedAt)}</p></> : <p className="mt-5 text-sm leading-relaxed text-slate-300">Take the assessment to add baseline and pressure metrics.</p>}
-                <Link href="/assessment" className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-md bg-white px-4 text-sm font-semibold text-slate-950">Retake assessment</Link>
+                <Link href="/911-dispatcher-assessment-test" className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-md bg-white px-4 text-sm font-semibold text-slate-950">Retake assessment</Link>
               </aside>
             </div>
           </>
