@@ -63,7 +63,7 @@ export default function CriticallTestPage() {
             <p className="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">Complete 12 original sample tasks in a free 911 dispatcher practice test covering visual data entry, short-term memory, audio detail entry, and rapid dispatch decisions. No sign-up or payment.</p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <a href="#free-practice-test" className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-blue-700 px-6 text-sm font-semibold text-white transition hover:bg-blue-800">Start the free practice test <ArrowRight className="size-4" /></a>
-              <Link href="/assessment" className="inline-flex h-12 items-center justify-center rounded-md border border-slate-300 bg-white px-6 text-sm font-semibold text-slate-800 transition hover:bg-slate-50">Take the free dispatcher skills assessment</Link>
+              <Link href="/911-dispatcher-assessment-test" className="inline-flex h-12 items-center justify-center rounded-md border border-slate-300 bg-white px-6 text-sm font-semibold text-slate-800 transition hover:bg-slate-50">Take the free dispatcher skills assessment</Link>
             </div>
             <p className="mt-5 max-w-2xl text-xs leading-relaxed text-slate-500">Independently created practice based on publicly described dispatcher skills. Not affiliated with or endorsed by CritiCall or Biddle Consulting Group.</p>
           </div>
