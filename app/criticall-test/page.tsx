@@ -61,6 +61,7 @@ export default function CriticallTestPage() {
             <p className="font-mono text-xs font-semibold uppercase tracking-[.18em] text-blue-700">Free dispatcher skills practice</p>
             <h1 className="mt-4 max-w-3xl text-balance text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">Free CritiCall Practice Test for 911 Dispatchers</h1>
             <p className="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">Complete 12 original sample tasks in a free 911 dispatcher practice test covering visual data entry, short-term memory, audio detail entry, and rapid dispatch decisions. No sign-up or payment.</p>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">If your packet describes a hiring step and does not name a vendor, read the <Link href="/911-dispatcher-assessment-test" className="font-semibold text-blue-700 underline-offset-4 hover:underline">911 dispatcher assessment guide</Link> before you treat this 12-item check as the whole process.</p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <a href="#free-practice-test" className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-blue-700 px-6 text-sm font-semibold text-white transition hover:bg-blue-800">Start the free practice test <ArrowRight className="size-4" /></a>
               <Link href="/911-dispatcher-assessment-test" className="inline-flex h-12 items-center justify-center rounded-md border border-slate-300 bg-white px-6 text-sm font-semibold text-slate-800 transition hover:bg-slate-50">Take the free dispatcher skills assessment</Link>
@@ -150,7 +151,7 @@ export default function CriticallTestPage() {
           <p className="font-mono text-xs font-semibold uppercase tracking-[.18em] text-blue-700">Common questions</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight">CritiCall practice test FAQ</h2>
           <div className="mt-7 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white px-6 shadow-sm sm:px-8">
-            {faq.map((item) => <article key={item.question} className="py-6"><h3 className="text-lg font-semibold">{item.question}</h3><p className="mt-2 leading-7 text-slate-600">{item.answer}</p></article>)}
+            {faq.map((item) => <article key={item.question} className="py-6"><h3 className="text-lg font-semibold">{item.question}</h3><p className="mt-2 leading-7 text-slate-600">{item.answer}{item.question.startsWith('What skills') ? <> For the broader hiring step, which may use a different vendor, read the <Link href="/911-dispatcher-assessment-test" className="font-semibold text-blue-700 underline-offset-4 hover:underline">911 dispatcher assessment guide</Link>.</> : null}</p></article>)}
           </div>
           <div className="mt-8 flex flex-col gap-3 rounded-xl bg-slate-950 p-6 text-white sm:flex-row sm:items-center sm:justify-between sm:p-8">
             <div><h2 className="text-xl font-semibold">Keep training after the diagnostic.</h2><p className="mt-1 text-sm text-slate-300">Repeat one weak skill, then combine the work in Exam Mode.</p></div>

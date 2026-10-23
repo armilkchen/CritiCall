@@ -145,7 +145,7 @@ export default function DispatcherAssessmentTestPage() {
                 </ol>
               </nav>
               <p className="mt-6 font-mono text-xs font-semibold uppercase tracking-[.18em] text-blue-700">Free dispatcher hiring guide</p>
-              <h1 className="mt-4 max-w-3xl text-balance text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">A Free Guide to the 911 Dispatcher Assessment Test</h1>
+              <h1 className="mt-4 max-w-3xl text-balance text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">911 Dispatcher Assessment Test: Free Practice Guide</h1>
               <p className="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">{lead}</p>
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                 <a href="#practice" className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-blue-700 px-6 text-sm font-semibold text-white transition hover:bg-blue-800">Start the free practice <ArrowRight className="size-4" /></a>
@@ -223,6 +223,17 @@ export default function DispatcherAssessmentTestPage() {
             <ol className="mt-6 list-decimal space-y-4 pl-5 text-base leading-7 text-slate-600">
               {prepareSteps.map((step) => <li key={step}>{step}</li>)}
             </ol>
+          </div>
+        </section>
+
+        <section className="border-b border-slate-200 px-4 py-14 sm:px-6 lg:py-20">
+          <div className="mx-auto max-w-3xl">
+            <h2 className="text-3xl font-semibold tracking-tight">Behavioral and psychological assessment for dispatchers</h2>
+            <div className="mt-5 space-y-4 text-base leading-7 text-slate-600">
+              <p>A behavioral or psychological screen is a separate sitting from the typing, data-entry, and multitasking checks. Those skill tests count characters, fields, and whether you can return to a form after an interruption. A behavioral screen asks what you would do in a described workplace moment, and which response fits a rule the agency cares about. Agencies do not all use one. Some add it after the skills test. Some hire a different vendor for it. The invitation in your packet is the only list that applies to you.</p>
+              <p>The items cluster into four jobs. Situational judgment gives you a short scene and four actions. A caller is shouting, a coworker skipped a required callback, or a supervisor tells you to leave a location blank to save time. You mark the most effective action and, on some forms, the least effective one. Stress decisions force a choice when two details arrive together and you cannot capture both at once. The keyed answer is the detail that locates the incident or names the hazard, not the detail that is merely interesting. Rule-following items print a rule on the screen, then describe a case that tempts you to ignore it. If the card says a dark traffic signal goes to the utility service, the answer follows the card even when the caller sounds frightened. Customer-service items ask whether you collect the location before you debate who is at fault, and whether you stay on the checklist while the caller is angry.</p>
+              <p>Preparation is repetition against those four jobs, not a personality quiz you can cram the night before. Take eight original scenes. For each one, write the action that secures the location and the immediate hazard first, then write why the faster-looking option fails. Reject any choice that argues with the caller, skips a required field, or invents a unit assignment the card did not give you. Eight reviewed items show the pattern. Forty unread tips do not. A clean character string still belongs on the <Link href="/criticall-test" className="font-semibold text-blue-700 underline-offset-4 hover:underline">CritiCall practice test</Link> and the <Link href="/dispatcher-typing-test" className="font-semibold text-blue-700 underline-offset-4 hover:underline">dispatcher typing test</Link>. An interruption still belongs on the <Link href="/criticall-multitasking-test" className="font-semibold text-blue-700 underline-offset-4 hover:underline">CritiCall multitasking practice</Link>. Judgment items do not raise your words per minute, and a high words-per-minute number does not answer them.</p>
+            </div>
           </div>
         </section>
 

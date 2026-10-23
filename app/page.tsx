@@ -9,8 +9,8 @@ import { CtaFooter } from '@/components/landing/cta-footer'
 import { createSeoMetadata } from '@/lib/seo'
 
 export const metadata = createSeoMetadata({
-  title: 'DispatchReady — Free 911 Dispatcher Test Prep',
-  description: 'Free 911 dispatcher test practice for typing, data entry, audio recall, memory, call summaries, and multitasking under pressure.',
+  title: 'Free 911 Dispatcher Test Prep & CritiCall Practice',
+  description: 'Free 911 dispatcher test prep: 20-minute timed practice exam plus six CritiCall-style drills. Instant readiness report. No sign-up.',
   path: '/',
 })
 

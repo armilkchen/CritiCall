@@ -30,9 +30,11 @@ export function Hero() {
           </div>
 
           <h1 className="mt-6 text-balance text-4xl font-semibold leading-[1.03] tracking-tight text-foreground sm:text-5xl lg:text-[3.75rem]">
-            Your skills aren&apos;t the problem.{' '}
-            <span className="text-primary">The pressure is.</span>
+            Free 911 Dispatcher Test Prep
           </h1>
+          <p className="mt-4 max-w-xl text-balance text-2xl font-semibold leading-snug tracking-tight text-foreground sm:text-3xl">
+            Your skills aren&apos;t the problem. <span className="text-primary">The pressure is.</span>
+          </p>
 
           <p className="mt-6 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
             Typing, memory, and decision-making might be strong on their own.
