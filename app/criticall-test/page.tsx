@@ -34,11 +34,15 @@ const faq = [
     question: 'Does this free test include CritiCall sample questions?',
     answer: 'It includes original dispatcher practice questions and data-entry tasks based on publicly described skills. They are not official, copied, recalled, or leaked CritiCall questions.',
   },
-  {
-    question: 'How long is the CritiCall test?',
-    answer: 'There is no single universal length because hiring agencies can select different CritiCall modules and configurations. Check your agency instructions or test invitation for the expected duration. The free DispatchReady diagnostic on this page takes about 6–8 minutes.',
-  },
-]
+    {
+      question: 'How long is the CritiCall test?',
+      answer: 'There is no single universal length because hiring agencies can select different CritiCall modules and configurations. Check your agency instructions or test invitation for the expected duration. The free DispatchReady diagnostic on this page takes about 6–8 minutes.',
+    },
+    {
+      question: 'What score do I need to pass?',
+      answer: 'There is no single nationwide passing line. The cut score is set by each hiring agency, and the same assessment can have a different requirement from one agency to the next. If you need the number that applies to you, check that agency\'s job announcement or ask the recruiting office directly. This answer does not include a score or a pass rate. We do not give a specific passing score because we cannot cite a public source for one.',
+    },
+  ]
 
 export default function CriticallTestPage() {
   const jsonLd = {
@@ -127,7 +131,7 @@ export default function CriticallTestPage() {
             <h2 className="mt-3 text-3xl font-semibold tracking-tight">What is the CritiCall test?</h2>
             <div className="mt-5 space-y-4 text-base leading-7 text-slate-600">
               <p>CritiCall is a configurable pre-employment testing system used by public-safety agencies. Its official applicant FAQ says the software contains more than 20 tests, while each agency selects the tests that fit its position.</p>
-              <p>Public materials describe skills such as data entry, listening, memory recall, decision-making, multitasking, map reading, comprehension, spelling, and keyboarding. Your invitation or hiring agency is the best source for the exact process you will take.</p>
+              <p>Public materials describe skills such as data entry, listening, memory recall, decision-making, multitasking, map reading, comprehension, spelling, and keyboarding. Your invitation or hiring agency is the best source for the exact process you will take. The vendor publishes a <a href="https://criticall911.com/hubfs/Criticall-Website-Files/CritiCall_Candidate_Test_Preparation_Guide_2023.pdf" target="_blank" rel="noreferrer" className="font-semibold text-blue-700 underline-offset-4 hover:underline">candidate preparation guide</a> and lists it on its <a href="https://criticall911.com/dispatcher-testing/applicants" target="_blank" rel="noreferrer" className="font-semibold text-blue-700 underline-offset-4 hover:underline">dispatcher testing page for applicants</a>.</p>
             </div>
             <a href="https://criticall911.com/company/news/criticall-dispatcher-applicant" target="_blank" rel="noreferrer" className="mt-5 inline-flex text-sm font-semibold text-blue-700 underline-offset-4 hover:underline">Read the official applicant FAQ <span aria-hidden="true">↗</span></a>
           </article>
@@ -159,6 +163,10 @@ export default function CriticallTestPage() {
           </div>
         </div>
       </section>
+
+      <aside className="border-t border-slate-200 bg-white px-4 py-8 sm:px-6">
+        <p className="mx-auto max-w-4xl text-xs leading-5 text-slate-500">DispatchReady is an independent third-party practice resource. It is not affiliated with, endorsed by, or sponsored by Biddle Consulting Group. CritiCall is a trademark and property of its respective rights holder. Every practice item on this site is original and does not come from any real exam.</p>
+      </aside>
     </main>
   )
 }
