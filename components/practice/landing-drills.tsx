@@ -7,6 +7,7 @@ import {
   copyEntryFields,
   copyEntryLabels,
   difficultySettings,
+  callerTypingPassage,
   generateCopyEntryRound,
   generateDataEntryScenario,
   generateDecisionScenario,
@@ -45,10 +46,6 @@ function fieldAccuracy(record: RecordFields, response: RecordFields) {
   return { score: Math.round((correct / keys.length) * 100), correct, total: keys.length }
 }
 
-function callerPassage(record: RecordFields) {
-  return `Caller ${record.name} is at ${record.address}. Callback ${record.phone}. Vehicle plate ${record.plate}. The caller is still on the line and can point out the vehicle.`
-}
-
 function emptyRecord(): RecordFields {
   return { name: '', address: '', phone: '', plate: '' }
 }
@@ -71,7 +68,7 @@ export function TypingLandingDrill() {
   }, [result, startedAt])
 
   function restart() {
-    const next = callerPassage(generateDataEntryScenario('normal'))
+    const next = callerTypingPassage(generateDataEntryScenario('normal'))
     activePassage.current = next
     setPassage(next)
     setResponse('')
@@ -94,7 +91,7 @@ export function TypingLandingDrill() {
   return (
     <div>
       <p className="text-sm leading-relaxed text-slate-600">Type the caller record exactly. The clock starts when you do. Score the run when you finish. Pasting is off.</p>
-      {startedAt === null ? <div className="mt-6"><button type="button" onClick={() => { const next = passage ?? callerPassage(generateDataEntryScenario('normal')); activePassage.current = next; setPassage(next); setStartedAt(Date.now()); setNow(Date.now()) }} className="inline-flex h-11 items-center rounded-md bg-blue-700 px-5 text-sm font-semibold text-white">Start typing</button></div> : null}
+      {startedAt === null ? <div className="mt-6"><button type="button" onClick={() => { const next = passage ?? callerTypingPassage(generateDataEntryScenario('normal')); activePassage.current = next; setPassage(next); setStartedAt(Date.now()); setNow(Date.now()) }} className="inline-flex h-11 items-center rounded-md bg-blue-700 px-5 text-sm font-semibold text-white">Start typing</button></div> : null}
       {startedAt !== null ? (
         <>
           <div className="mt-6 flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -350,7 +347,7 @@ export function AudioLandingDrill() {
 
   return (
     <div>
-      <p className="text-sm leading-relaxed text-slate-600">Play the caller, then enter the name, address, phone, and plate. Replay is allowed on this practice page.</p>
+      <p className="text-sm leading-relaxed text-slate-600">Play the caller, then enter the name, address, phone, and plate. The facts may arrive in any order. If the caller corrects a phone or a plate, enter the corrected one. Replay repeats the same call.</p>
       <button type="button" onClick={play} className="mt-6 flex w-full items-center gap-4 rounded-lg bg-slate-950 p-5 text-left text-white"><span className="grid size-11 place-items-center rounded bg-blue-600">{playing ? <Volume2 className="size-5" /> : <Play className="size-5" />}</span><span className="font-semibold">{playing ? 'Playing caller audio…' : 'Play caller audio'}</span></button>
       {unavailable && record ? <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">Transcript fallback, because this browser has no English voice: {recordToAudioScript(record)}</p> : null}
       <div className="mt-5 grid gap-4 sm:grid-cols-2">

@@ -128,13 +128,31 @@ const summaryDistractors = [
   'The caller is standing near a blue mailbox.',
 ]
 
-const typingPassages = [
-  'Stay calm, listen closely, and enter each detail exactly as it is given. Clear information helps the right response reach the right place without delay.',
-  'A strong dispatcher practice routine builds focus under pressure. Read the prompt once, keep your hands steady, and confirm important names, locations, and numbers.',
-  'Accuracy comes before speed. Type at a pace you can control, notice each word, and recover quickly if you make a mistake instead of rushing ahead.',
-  'During a busy shift, small details can matter. Practice keeping your attention on the current call while recording the information another person needs to act.',
-  'Good communication is direct and complete. Use the facts you have, avoid guessing, and make each entry easy for the next person to understand.',
-  'Pressure changes quickly, but a reliable process stays useful. Listen, verify the essentials, choose the next step, and keep moving with purpose.',
+type SpokenFact = 'name' | 'address' | 'phone' | 'plate'
+
+const audioOrders: SpokenFact[][] = [
+  ['name', 'address', 'phone', 'plate'],
+  ['address', 'name', 'phone', 'plate'],
+  ['plate', 'name', 'address', 'phone'],
+  ['phone', 'name', 'address', 'plate'],
+  ['name', 'plate', 'address', 'phone'],
+  ['address', 'phone', 'name', 'plate'],
+]
+
+const audioAsides = [
+  'A dog is barking nearby. That is not part of the call.',
+  'Ignore the voices behind me and take these details.',
+  'I am outside, and the wind is loud. Here are the details you need.',
+  'Stay with me. I am shaken, but the details after this are the ones to write.',
+]
+
+const typingShapes = [
+  (record: RecordFields) => `Caller ${record.name} is at ${record.address}. Callback ${record.phone}. Vehicle plate ${record.plate}. The caller is still on the line and can point out the vehicle.`,
+  (record: RecordFields) => `Location: ${record.address}. The caller is ${record.name}. Reach them at ${record.phone}. The plate on the vehicle is ${record.plate}.`,
+  (record: RecordFields) => `Take this down. ${record.name} needs a callback at ${record.phone}. They are at ${record.address}. Plate ${record.plate}.`,
+  (record: RecordFields) => `Plate ${record.plate} belongs to a vehicle at ${record.address}. The caller, ${record.name}, can be reached at ${record.phone}.`,
+  (record: RecordFields) => `${record.name} is calling from ${record.address}. Do not drop the plate ${record.plate} or the callback ${record.phone}.`,
+  (record: RecordFields) => `Write the callback first: ${record.phone}. Then the name ${record.name}, the address ${record.address}, and the plate ${record.plate}.`,
 ]
 
 function randomInt(max: number, random: () => number) {
@@ -180,11 +198,63 @@ export function generatePressureScenario(difficulty: TrainingDifficulty = 'norma
   }
 }
 
-export function recordToAudioScript(record: RecordFields) {
-  const phone = record.phone.replace(/\d+/g, (digits) => digits.split('').join(', ')).replace(/-/g, ', ')
-  const plate = record.plate.split('').join(' ')
-  const address = record.address.replace(/\d+/g, (digits) => digits.split('').join(', '))
-  return `My name is ${record.name}. I am at ${address}. My callback number is ${phone}. The vehicle plate is ${plate}.`
+function recordSeed(record: RecordFields) {
+  const text = `${record.name}|${record.address}|${record.phone}|${record.plate}`
+  let hash = 2166136261
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index)
+    hash = Math.imul(hash, 16777619)
+  }
+  return hash >>> 0
+}
+
+function spellNumbers(value: string) {
+  return value.replace(/\d+/g, (group) => group.split('').join(', ')).replace(/-/g, ', ')
+}
+
+function changedLastCharacter(value: string) {
+  const characters = value.split('')
+  const index = characters.length - 1
+  const current = characters[index]
+  if (/[0-9]/.test(current)) characters[index] = String((Number(current) + 1) % 10)
+  else if (/[A-Za-z]/.test(current)) {
+    const upper = current.toUpperCase()
+    characters[index] = upper === 'Z' ? 'B' : String.fromCharCode(upper.charCodeAt(0) + 1)
+  }
+  return characters.join('')
+}
+
+function spokenFact(fact: SpokenFact, record: RecordFields, correctIt: boolean) {
+  if (fact === 'name') return `My name is ${record.name}.`
+  if (fact === 'address') return `I am at ${spellNumbers(record.address)}.`
+  if (fact === 'phone') {
+    const spoken = spellNumbers(record.phone)
+    if (!correctIt) return `My callback number is ${spoken}.`
+    return `My callback number is ${spellNumbers(changedLastCharacter(record.phone))}. Sorry, scratch that. The correct callback is ${spoken}.`
+  }
+  const spoken = record.plate.split('').join(' ')
+  if (!correctIt) return `The vehicle plate is ${spoken}.`
+  return `The vehicle plate is ${changedLastCharacter(record.plate).split('').join(' ')}. Sorry, that plate is wrong. The correct plate is ${spoken}.`
+}
+
+export function recordToAudioScript(record: RecordFields, difficulty: TrainingDifficulty = 'normal') {
+  const seed = recordSeed(record)
+  const order = audioOrders[seed % audioOrders.length]
+  const correction: SpokenFact | null = difficulty === 'hard'
+    ? (seed % 2 === 0 ? 'plate' : 'phone')
+    : difficulty === 'normal' && seed % 2 === 0
+      ? (seed % 4 === 0 ? 'plate' : 'phone')
+      : null
+  const aside = difficulty === 'hard' || (difficulty === 'normal' && seed % 4 === 1)
+    ? audioAsides[seed % audioAsides.length]
+    : null
+  const sentences = order.map((fact) => spokenFact(fact, record, fact === correction))
+  if (aside) sentences.splice(1, 0, aside)
+  return sentences.join(' ')
+}
+
+export function callerTypingPassage(record: RecordFields) {
+  return typingShapes[recordSeed(record) % typingShapes.length](record)
 }
 
 export function generateCallSummaryScenario(difficulty: TrainingDifficulty = 'normal', random = Math.random): CallSummaryScenario {
@@ -211,7 +281,7 @@ export function generateCallSummaryScenario(difficulty: TrainingDifficulty = 'no
 }
 
 export function generateTypingPassage(random = Math.random) {
-  return choose(typingPassages, random)
+  return callerTypingPassage(generateDataEntryScenario('normal', random))
 }
 
 export const copyEntryFields = ['firstName', 'lastName', 'phone', 'address', 'city', 'zip', 'vin', 'plate', 'license'] as const
