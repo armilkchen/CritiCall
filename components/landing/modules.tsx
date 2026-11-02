@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import {
   Keyboard,
   Headphones,
@@ -53,7 +54,12 @@ export function Modules() {
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
             Every drill is generated on demand, so you get unlimited adaptive
-            reps — not a static list of questions to memorize.
+            reps — not a static list of questions to memorize. If you need a
+            words-per-minute number first, take the{' '}
+            <Link href="/dispatcher-typing-test" className="font-medium text-foreground underline decoration-primary/40 underline-offset-4 hover:decoration-primary">
+              911 dispatcher typing test
+            </Link>
+            .
           </p>
         </div>
 

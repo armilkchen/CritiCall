@@ -317,7 +317,7 @@ export const audioPage = {
 
 export const pdfPage = {
   path: '/criticall-practice-test-pdf' as const,
-  title: 'CritiCall Practice Test PDF — Free Printable Answer Sheet',
+  title: 'Free Printable CritiCall Practice Sheet (PDF + Answer Key)',
   description: 'Download a free CritiCall practice test PDF with answer sheet and scoring guide — plus the online version that scores you automatically.',
   h1: 'CritiCall Practice Test PDF (Free Printable)',
   eyebrow: 'Printable sheet · answer key included',

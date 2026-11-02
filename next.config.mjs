@@ -10,6 +10,11 @@ const nextConfig = {
         destination: '/911-dispatcher-assessment-test',
         permanent: true,
       },
+      {
+        source: '/911-dispatcher-typing-test',
+        destination: '/dispatcher-typing-test',
+        permanent: true,
+      },
     ]
   },
 }
