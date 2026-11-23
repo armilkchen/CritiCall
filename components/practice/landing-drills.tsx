@@ -19,6 +19,7 @@ import {
   type RecordFields,
 } from '@/lib/generators/dispatcher-drills'
 import { saveDrillResult } from '@/lib/progress'
+import { trackFunnelEvent } from '@/lib/analytics'
 
 const services: DispatchService[] = ['Police', 'Fire', 'EMS', 'Utility']
 
@@ -59,7 +60,6 @@ export function TypingLandingDrill() {
   const [now, setNow] = useState(0)
   const [result, setResult] = useState<ReturnType<typeof netWpm> | null>(null)
   const [seconds, setSeconds] = useState<number | null>(null)
-  const activePassage = useRef('')
 
   useEffect(() => {
     if (startedAt === null || result) return
@@ -69,7 +69,6 @@ export function TypingLandingDrill() {
 
   function restart() {
     const next = callerTypingPassage(generateDataEntryScenario('normal'))
-    activePassage.current = next
     setPassage(next)
     setResponse('')
     setStartedAt(null)
@@ -78,27 +77,27 @@ export function TypingLandingDrill() {
   }
 
   function score() {
-    if (startedAt === null) return
+    if (startedAt === null || passage === null) return
     const spent = elapsedSeconds(startedAt)
-    const next = netWpm(activePassage.current, response, spent)
+    const next = netWpm(passage, response, spent)
     setSeconds(spent)
     setResult(next)
     saveDrillResult('typing', next.accuracy, undefined, { wpm: next.wpm, accuracy: next.accuracy })
   }
 
-  const clock = startedAt === null ? '0:00' : formatClock(seconds ?? Math.max(1, Math.round((((now || Date.now()) - startedAt) / 1000))))
+  const clock = startedAt === null ? '0:00' : formatClock(seconds ?? Math.max(1, Math.round((now - startedAt) / 1000)))
 
   return (
     <div>
       <p className="text-sm leading-relaxed text-slate-600">Type the caller record exactly. The clock starts when you do. Score the run when you finish. Pasting is off.</p>
-      {startedAt === null ? <div className="mt-6"><button type="button" onClick={() => { const next = passage ?? callerTypingPassage(generateDataEntryScenario('normal')); activePassage.current = next; setPassage(next); setStartedAt(Date.now()); setNow(Date.now()) }} className="inline-flex h-11 items-center rounded-md bg-blue-700 px-5 text-sm font-semibold text-white">Start typing</button></div> : null}
+      {startedAt === null ? <div className="mt-6"><button type="button" onClick={() => { trackFunnelEvent('drill_start', { drill: 'typing' }); const next = passage ?? callerTypingPassage(generateDataEntryScenario('normal')); setPassage(next); setStartedAt(Date.now()); setNow(Date.now()) }} className="inline-flex h-11 items-center rounded-md bg-blue-700 px-5 text-sm font-semibold text-white">Start typing</button></div> : null}
       {startedAt !== null ? (
         <>
           <div className="mt-6 flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-4">
             <span className="font-mono text-xs font-semibold uppercase tracking-[.15em] text-slate-500">Elapsed</span>
             <strong className="font-mono text-3xl">{clock}</strong>
           </div>
-          <p className="mt-5 select-none rounded-lg border border-slate-200 bg-slate-50 p-5 text-base leading-8 text-slate-800">{activePassage.current}</p>
+          <p className="mt-5 select-none rounded-lg border border-slate-200 bg-slate-50 p-5 text-base leading-8 text-slate-800">{passage}</p>
           <textarea value={response} disabled={result !== null} onPaste={(event) => event.preventDefault()} onChange={(event) => setResponse(event.target.value)} rows={5} spellCheck={false} className="mt-5 w-full rounded-md border border-slate-300 p-4 text-base leading-7 outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 disabled:bg-slate-100" />
           {result === null || seconds === null ? <div className="mt-6 flex justify-end"><button type="button" onClick={score} className="inline-flex h-11 items-center gap-2 rounded-md bg-blue-700 px-5 text-sm font-semibold text-white">Score this run <Check className="size-4" /></button></div> : (
             <div className="mt-6">
@@ -106,7 +105,7 @@ export function TypingLandingDrill() {
                 <div className="rounded-lg bg-slate-950 p-4 text-white"><p className="font-mono text-[.65rem] uppercase tracking-[.15em] text-slate-400">Net WPM</p><p className="mt-1 font-mono text-3xl font-bold">{result.wpm}</p></div>
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-4"><p className="font-mono text-[.65rem] uppercase tracking-[.15em] text-slate-500">Accuracy</p><p className="mt-1 font-mono text-3xl font-bold">{result.accuracy}%</p><p className="mt-1 text-sm text-slate-600">{result.correctCharacters} of {result.typedCharacters} characters matched, in {seconds} seconds.</p></div>
               </div>
-              <div className="mt-4 flex justify-end"><button type="button" onClick={restart} className="inline-flex h-10 items-center rounded-md bg-slate-950 px-4 text-sm font-semibold text-white">Run another record</button></div>
+              <div className="mt-4 flex justify-end"><button type="button" onClick={() => { trackFunnelEvent('next_round_start', { drill: 'typing' }); restart() }} className="inline-flex h-10 items-center rounded-md bg-slate-950 px-4 text-sm font-semibold text-white">Run another record</button></div>
             </div>
           )}
         </>
@@ -152,12 +151,12 @@ export function EntryLandingDrill() {
     saveDrillResult('entry', Math.round((next.filter((field) => field.correct).length / next.length) * 100))
   }
 
-  const clock = startedAt === null ? '0:00' : formatClock(seconds ?? Math.max(1, Math.round((((now || Date.now()) - startedAt) / 1000))))
+  const clock = startedAt === null ? '0:00' : formatClock(seconds ?? Math.max(1, Math.round((now - startedAt) / 1000)))
 
   return (
     <div>
       <p className="text-sm leading-relaxed text-slate-600">Copy only the fields on the card. One wrong character misses the whole field. Phone dashes are optional. Pasting is off.</p>
-      {startedAt === null || task === null ? <div className="mt-6"><button type="button" onClick={() => { setTask(pickEntryFields()); setStartedAt(Date.now()); setNow(Date.now()) }} className="inline-flex h-11 items-center rounded-md bg-blue-700 px-5 text-sm font-semibold text-white">Start timed entry</button></div> : (
+      {startedAt === null || task === null ? <div className="mt-6"><button type="button" onClick={() => { trackFunnelEvent('drill_start', { drill: 'entry' }); setTask(pickEntryFields()); setStartedAt(Date.now()); setNow(Date.now()) }} className="inline-flex h-11 items-center rounded-md bg-blue-700 px-5 text-sm font-semibold text-white">Start timed entry</button></div> : (
         <>
           <div className="mt-6 flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-4">
             <span className="font-mono text-xs font-semibold uppercase tracking-[.15em] text-slate-500">{task.keys.length} fields</span>
@@ -180,7 +179,7 @@ export function EntryLandingDrill() {
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 {graded.map((field) => <div key={field.key} className={`rounded-md border px-3 py-2 text-sm ${field.correct ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : 'border-amber-200 bg-amber-50 text-amber-950'}`}><span className="font-semibold">{copyEntryLabels[field.key]}: </span>{field.correct ? 'Correct' : `Expected ${task.record[field.key]}`}</div>)}
               </div>
-              <div className="mt-4 flex justify-end"><button type="button" onClick={() => { setTask(pickEntryFields()); setValues({}); setStartedAt(null); setGraded(null); setSeconds(null) }} className="inline-flex h-10 items-center rounded-md bg-slate-950 px-4 text-sm font-semibold text-white">Next record</button></div>
+              <div className="mt-4 flex justify-end"><button type="button" onClick={() => { trackFunnelEvent('next_round_start', { drill: 'entry' }); setTask(pickEntryFields()); setValues({}); setStartedAt(null); setGraded(null); setSeconds(null) }} className="inline-flex h-10 items-center rounded-md bg-slate-950 px-4 text-sm font-semibold text-white">Next record</button></div>
             </div>
           )}
         </>
@@ -211,7 +210,7 @@ export function MemoryLandingDrill() {
   return (
     <div>
       <p className="text-sm leading-relaxed text-slate-600">A 6-character code stays up for 3.5 seconds. Type it back with every character in order. A partial match scores 0.</p>
-      {phase === 'ready' ? <div className="mt-6"><button type="button" onClick={() => { setCode(generateMemoryCode('normal')); setPhase('show') }} className="inline-flex h-11 items-center rounded-md bg-blue-700 px-5 text-sm font-semibold text-white">Show the code</button></div> : null}
+      {phase === 'ready' ? <div className="mt-6"><button type="button" onClick={() => { trackFunnelEvent('drill_start', { drill: 'memory' }); setCode(generateMemoryCode('normal')); setPhase('show') }} className="inline-flex h-11 items-center rounded-md bg-blue-700 px-5 text-sm font-semibold text-white">Show the code</button></div> : null}
       {phase !== 'ready' ? <div className="mt-6 grid min-h-32 place-items-center rounded-lg border border-slate-200 bg-slate-50 px-5 text-center font-mono text-4xl font-bold tracking-[.24em]">{phase === 'show' ? code : '••••••'}</div> : null}
       {phase === 'answer' || phase === 'scored' ? (
         <>
@@ -219,7 +218,7 @@ export function MemoryLandingDrill() {
           {phase === 'answer' ? <div className="mt-6 flex justify-end"><button type="button" onClick={score} className="inline-flex h-11 items-center gap-2 rounded-md bg-blue-700 px-5 text-sm font-semibold text-white">Score recall <Check className="size-4" /></button></div> : (
             <div className="mt-6">
               <p className={`rounded-lg border p-4 text-sm ${correct ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : 'border-amber-200 bg-amber-50 text-amber-950'}`}>{correct ? 'Exact match.' : <>Expected <strong className="font-mono tracking-[.14em]">{code}</strong></>}</p>
-              <div className="mt-4 flex justify-end"><button type="button" onClick={() => { setCode(''); setAnswer(''); setCorrect(null); setPhase('ready') }} className="inline-flex h-10 items-center rounded-md bg-slate-950 px-4 text-sm font-semibold text-white">Next code</button></div>
+              <div className="mt-4 flex justify-end"><button type="button" onClick={() => { trackFunnelEvent('next_round_start', { drill: 'memory' }); setCode(''); setAnswer(''); setCorrect(null); setPhase('ready') }} className="inline-flex h-10 items-center rounded-md bg-slate-950 px-4 text-sm font-semibold text-white">Next code</button></div>
             </div>
           )}
         </>
@@ -272,7 +271,7 @@ export function MultitaskLandingDrill() {
   }
 
   if (!baselineRecord || !pressureRecord || !decision) {
-    return <div><p className="text-sm leading-relaxed text-slate-600">Enter one quiet record, then a second record with a classification card in the way.</p><div className="mt-6"><button type="button" onClick={() => { setBaselineRecord(generateDataEntryScenario('normal')); setPressureRecord(generateDataEntryScenario('normal')); setDecision(generateDecisionScenario()) }} className="inline-flex h-11 items-center rounded-md bg-blue-700 px-5 text-sm font-semibold text-white">Start the pair</button></div></div>
+    return <div><p className="text-sm leading-relaxed text-slate-600">Enter one quiet record, then a second record with a classification card in the way.</p><div className="mt-6"><button type="button" onClick={() => { trackFunnelEvent('drill_start', { drill: 'pressure' }); setBaselineRecord(generateDataEntryScenario('normal')); setPressureRecord(generateDataEntryScenario('normal')); setDecision(generateDecisionScenario()) }} className="inline-flex h-11 items-center rounded-md bg-blue-700 px-5 text-sm font-semibold text-white">Start the pair</button></div></div>
   }
 
   const activeRecord = phase === 'baseline' ? baselineRecord : pressureRecord
@@ -313,7 +312,7 @@ export function MultitaskLandingDrill() {
             <div className="rounded-lg bg-slate-950 p-4 text-white"><p className="font-mono text-[.65rem] uppercase tracking-[.15em] text-slate-400">Pressure drop</p><p className="mt-1 font-mono text-3xl font-bold">{drop > 0 ? `-${drop}` : drop < 0 ? `+${Math.abs(drop)}` : '0'}</p></div>
           </div>
           <p className="mt-4 text-sm leading-6 text-slate-600">The classification was {report.decisionCorrect ? 'correct' : `incorrect. The card answer was ${decision.answer}`}. Pressure drop is baseline accuracy minus the interrupted record. A larger drop means the interruption cost you characters, even if the classification was right.</p>
-          <div className="mt-4 flex justify-end"><button type="button" onClick={restart} className="inline-flex h-10 items-center rounded-md bg-slate-950 px-4 text-sm font-semibold text-white">Run the pair again</button></div>
+          <div className="mt-4 flex justify-end"><button type="button" onClick={() => { trackFunnelEvent('next_round_start', { drill: 'pressure' }); restart() }} className="inline-flex h-10 items-center rounded-md bg-slate-950 px-4 text-sm font-semibold text-white">Run the pair again</button></div>
         </div>
       ) : null}
     </div>
@@ -326,8 +325,13 @@ export function AudioLandingDrill() {
   const [playing, setPlaying] = useState(false)
   const [unavailable, setUnavailable] = useState(false)
   const [score, setScore] = useState<number | null>(null)
+  const hasStarted = useRef(false)
 
   function play() {
+    if (!hasStarted.current) {
+      hasStarted.current = true
+      trackFunnelEvent('drill_start', { drill: 'audio' })
+    }
     const next = record ?? generateDataEntryScenario('normal')
     if (!record) setRecord(next)
     const started = speakEnglish(recordToAudioScript(next), difficultySettings.normal.audioRate, {
@@ -367,7 +371,7 @@ export function AudioLandingDrill() {
               return <div key={key} className={`rounded-md border px-3 py-2 text-sm ${correct ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : 'border-amber-200 bg-amber-50 text-amber-950'}`}><span className="font-semibold">{label}: </span>{correct ? 'Correct' : `Expected ${record[key]}`}</div>
             }) : null}
           </div>
-          <div className="mt-4 flex justify-end"><button type="button" onClick={() => { setRecord(generateDataEntryScenario('normal')); setValue(emptyRecord()); setScore(null); setUnavailable(false) }} className="inline-flex h-10 items-center rounded-md bg-slate-950 px-4 text-sm font-semibold text-white">Next caller</button></div>
+          <div className="mt-4 flex justify-end"><button type="button" onClick={() => { trackFunnelEvent('next_round_start', { drill: 'audio' }); hasStarted.current = false; setRecord(generateDataEntryScenario('normal')); setValue(emptyRecord()); setScore(null); setUnavailable(false) }} className="inline-flex h-10 items-center rounded-md bg-slate-950 px-4 text-sm font-semibold text-white">Next caller</button></div>
         </div>
       )}
     </div>
@@ -378,7 +382,7 @@ export function PdfLandingDownload() {
   return (
     <div>
       <p className="text-base leading-7 text-slate-700">Use the sheet to practice item types. Use the online version to practice under pressure.</p>
-      <a href="/downloads/criticall-practice-test.pdf" download className="mt-6 inline-flex h-12 items-center justify-center rounded-md bg-blue-700 px-6 text-sm font-semibold text-white">Download PDF</a>
+      <a href="/downloads/criticall-practice-test.pdf" download onClick={() => trackFunnelEvent('pdf_download_click')} className="mt-6 inline-flex h-12 items-center justify-center rounded-md bg-blue-700 px-6 text-sm font-semibold text-white">Download PDF</a>
       <p className="mt-4 text-sm leading-6 text-slate-500">Three original records, four memory codes, and six rule-based decisions. The answer key is the last page. This file is not an official exam.</p>
     </div>
   )

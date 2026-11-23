@@ -76,7 +76,7 @@ export function saveAssessmentResult(result: Omit<AssessmentResult, 'id' | 'comp
   return assessment
 }
 
-export function saveDrillResult(drill: DrillType, score: number, difficulty?: DrillResult['difficulty'], metrics?: DrillResult['metrics']) {
+export function saveDrillResult(drill: DrillType, score: number, difficulty?: DrillResult['difficulty'], metrics?: DrillResult['metrics'], outcome: 'complete' | 'timeout' = 'complete') {
   const progress = loadProgress()
   const result: DrillResult = {
     id: createId(),
@@ -91,7 +91,8 @@ export function saveDrillResult(drill: DrillType, score: number, difficulty?: Dr
     ...progress,
     drills: [result, ...progress.drills].slice(0, 100),
   })
-  trackFunnelEvent(drill === 'exam' ? 'exam_complete' : 'drill_complete', { drill, difficulty })
+  const event = drill === 'exam' ? (outcome === 'timeout' ? 'exam_timeout' : 'exam_complete') : 'drill_complete'
+  trackFunnelEvent(event, { drill, difficulty })
 
   return result
 }

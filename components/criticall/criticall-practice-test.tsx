@@ -65,6 +65,7 @@ export function CriticallPracticeTest() {
   const [attempt, setAttempt] = useState(0)
 
   function retry() {
+    trackFunnelEvent('result_action', { action: 'retry' })
     trackFunnelEvent('next_round_start', { drill: 'criticall', difficulty: 'normal' })
     setAttempt((value) => value + 1)
   }
@@ -198,9 +199,9 @@ function PracticeAttempt({ onRetry }: { onRetry: () => void }) {
             <p className="font-mono text-xs font-semibold uppercase tracking-[.14em] text-amber-800">Recommended next step</p>
             <h4 className="mt-2 text-lg font-semibold">{recommendation.label}</h4>
             <p className="mt-2 text-sm leading-6 text-amber-950/75">Repeat this skill on its own before adding more speed or interruptions.</p>
-            <Link href={recommendation.href} className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-blue-700 px-4 text-sm font-semibold text-white">{recommendation.action} <ArrowRight className="size-4" /></Link>
+            <Link href={recommendation.href} onClick={() => trackFunnelEvent('result_action', { action: 'practice' })} className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-blue-700 px-4 text-sm font-semibold text-white">{recommendation.action} <ArrowRight className="size-4" /></Link>
             <button type="button" onClick={onRetry} className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 text-sm font-semibold text-amber-950/70"><RotateCcw className="size-4" /> Generate another test</button>
-            <Link href="/progress" className="inline-flex h-10 w-full items-center justify-center text-sm font-semibold text-amber-950/70">View local progress</Link>
+            <Link href="/progress" onClick={() => trackFunnelEvent('result_action', { action: 'progress' })} className="inline-flex h-10 w-full items-center justify-center text-sm font-semibold text-amber-950/70">View local progress</Link>
           </aside>
         </div>
       </section>

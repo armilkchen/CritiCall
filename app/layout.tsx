@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { SiteHeader } from '@/components/landing/site-header'
 import { SiteFooter } from '@/components/site-footer'
+import { AnalyticsPageView } from '@/components/analytics-page-view'
 import { safeJsonLd, siteUrl } from '@/lib/seo'
 import './globals.css'
 
@@ -66,6 +67,7 @@ export default function RootLayout({
       <body className="font-sans antialiased" suppressHydrationWarning>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
         <SiteHeader />
+        <AnalyticsPageView />
         {children}
         <SiteFooter />
       </body>

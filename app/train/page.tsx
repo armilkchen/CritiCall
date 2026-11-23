@@ -78,7 +78,11 @@ export function TrainingExperience({ mode = 'training' }: { mode?: 'training' | 
     trackFunnelEvent('drill_start', { drill, difficulty })
   }, [difficulty, drill, examMode, mounted, round])
 
-  function nextRound() { trackFunnelEvent('next_round_start', { drill, difficulty }); setRound((value) => value + 1) }
+  function nextRound() {
+    if (examMode) trackFunnelEvent('result_action', { action: 'retry' })
+    trackFunnelEvent('next_round_start', { drill: examMode ? 'exam' : drill, difficulty })
+    setRound((value) => value + 1)
+  }
   function selectDrill(next: TrainingDrill) { setDrill(next); setRound((value) => value + 1) }
   function selectDifficulty(next: TrainingDifficulty) { setDifficulty(next); setRound((value) => value + 1) }
 
@@ -232,7 +236,7 @@ function TimedSimulationRound({ onNext, difficulty, examMode = false }: { onNext
 
   useEffect(() => { if (stage !== 'memory-show') return; const timer = window.setTimeout(() => setStage('memory-answer'), difficultySettings[difficulty].memoryDuration); return () => window.clearTimeout(timer) }, [difficulty, stage])
   useEffect(() => { if (stage === 'intro' || stage === 'result') return; const timer = window.setInterval(() => setRemaining((value) => Math.max(0, value - 1)), 1000); return () => window.clearInterval(timer) }, [stage])
-  useEffect(() => { if (remaining !== 0 || stage === 'intro' || stage === 'result') return; const timer = window.setTimeout(() => { const partial = cycleScores.length ? Math.round(cycleScores.reduce((sum, scores) => sum + averageSimulationScore(scores), 0) / cycleScores.length) : 0; setFinalScore(partial); saveDrillResult(examMode ? 'exam' : 'simulation', partial, difficulty); setStage('result') }, 0); return () => window.clearTimeout(timer) }, [cycleScores, difficulty, examMode, remaining, stage])
+  useEffect(() => { if (remaining !== 0 || stage === 'intro' || stage === 'result') return; const timer = window.setTimeout(() => { const partial = cycleScores.length ? Math.round(cycleScores.reduce((sum, scores) => sum + averageSimulationScore(scores), 0) / cycleScores.length) : 0; setFinalScore(partial); saveDrillResult(examMode ? 'exam' : 'simulation', partial, difficulty, undefined, 'timeout'); setStage('result') }, 0); return () => window.clearTimeout(timer) }, [cycleScores, difficulty, examMode, remaining, stage])
 
   const scores = useMemo(() => ({ entry: fieldScore(session.entry, entry), memory: normalize(memory) === normalize(session.memory) ? 100 : 0, audio: fieldScore(session.audio, audio), summary: summaryScore(session.summary, summary), pressure: Math.round(fieldScore(session.pressure.record, pressure) * 0.75 + (decision === session.pressure.interruption.answer ? 25 : 0)) }), [audio, decision, entry, memory, pressure, session, summary])
 
