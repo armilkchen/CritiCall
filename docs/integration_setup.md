@@ -45,13 +45,19 @@ checks on the deployed preview.
 
 ## Usage analytics dashboard
 
-`/admin/analytics` uses the existing `dispatchready_funnel` Analytics Engine dataset. Set these Cloudflare Worker secrets (or put them in a git-ignored `.dev.vars` for a local Worker preview):
+`/admin/analytics` uses the existing `dispatchready_funnel` Analytics Engine dataset.
 
-- `ANALYTICS_ADMIN_USERNAME` — the dashboard administrator username.
-- `ANALYTICS_ADMIN_PASSWORD` — a long randomly generated password for that username.
-- `ANALYTICS_ACCOUNT_ID` — the Cloudflare account that owns the dataset.
-- `ANALYTICS_READ_TOKEN` — an API token limited to that account with **Account Analytics: Read**.
+### Administrator sign-in
 
-The dashboard returns 404 until both administrator secrets are configured. After deployment, sign in with the configured username and password, open a public page in a separate browser, and finish a drill. Check that the page view and training events appear after ingestion. New page views and daily browser estimates start at rollout. The dashboard groups dates in UTC and only includes browsers with a daily identifier in unique counts.
+HTTP Basic authentication is hardcoded in the Worker. The username is always `admin`. The plaintext password is stored only in the git-ignored local file [`docs/analytics_admin_credentials.local.md`](./analytics_admin_credentials.local.md) (generate or refresh it on the machine that needs it). The Worker ships a SHA-256 verifier of UTF-8 `admin:<password>` and never needs `ANALYTICS_ADMIN_USERNAME` / `ANALYTICS_ADMIN_PASSWORD` environment variables.
+
+### Cloudflare query secrets (required for data)
+
+Set these Cloudflare Worker secrets (or put them in a git-ignored `.dev.vars` for a local Worker preview). They stay server-side and are never exposed to the browser:
+
+- `ANALYTICS_ACCOUNT_ID` — the 32-character hex Cloudflare account ID that owns the dataset. A missing or malformed value returns **503** after a successful admin sign-in.
+- `ANALYTICS_READ_TOKEN` — an API token limited to that account with **Account Analytics: Read**. A missing token returns a separate **503** after sign-in.
+
+Unauthenticated requests receive **401** and do not query Analytics Engine. After deployment, sign in as `admin` with the local credential password, open a public page in a separate browser, and finish a drill. Check that the page view and training events appear after ingestion. New page views and daily browser estimates start at rollout. The dashboard groups dates in UTC and only includes browsers with a daily identifier in unique counts.
 
 Use **Practice funnel by page** to compare visits, starts, completions, and exam timeouts. The counts measure events, so repeat attempts can raise starts and completions. **After seeing results** shows practice, progress, and retry clicks, and **First page and traffic source** groups entrances by the broad referrer category. These new events are collected from rollout onward.

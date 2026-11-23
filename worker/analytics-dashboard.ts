@@ -1,14 +1,15 @@
 import { createHash, timingSafeEqual } from 'node:crypto'
 
 type AnalyticsSecrets = {
-  ANALYTICS_ADMIN_USERNAME?: string
-  ANALYTICS_ADMIN_PASSWORD?: string
   ANALYTICS_ACCOUNT_ID?: string
   ANALYTICS_READ_TOKEN?: string
 }
 
 type DailyRow = { day: string; browsers: number; total: number }
 type EventRow = { event: string; path: string; drill: string; source: string; action: string; total: number }
+
+/** SHA-256 of UTF-8 `admin:<password>`; plaintext lives only in git-ignored local docs. */
+const ADMIN_CREDENTIAL_DIGEST = Buffer.from('2fe756636960ebca0f133d1a407caa07775632eab78c7bb42dc6d17a756e02be', 'hex')
 
 const headers = {
   'Cache-Control': 'private, no-store',
@@ -37,14 +38,13 @@ function escapeHtml(value: string) {
   return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;')
 }
 
-function authorize(request: Request, username: string, password: string) {
+function authorize(request: Request) {
   const credentials = request.headers.get('Authorization')?.match(/^Basic ([A-Za-z0-9+/=]+)$/i)?.[1]
   if (!credentials) return false
 
   try {
-    const actual = createHash('sha256').update(atob(credentials), 'latin1').digest()
-    const expected = createHash('sha256').update(`${username}:${password}`, 'utf8').digest()
-    return timingSafeEqual(actual, expected)
+    const actual = createHash('sha256').update(atob(credentials), 'utf8').digest()
+    return timingSafeEqual(actual, ADMIN_CREDENTIAL_DIGEST)
   } catch {
     return false
   }
@@ -164,14 +164,23 @@ ${conversionTables(events)}
 }
 
 export async function analyticsDashboard(request: Request, env: Env & AnalyticsSecrets) {
-  const { ANALYTICS_ADMIN_USERNAME: username, ANALYTICS_ADMIN_PASSWORD: password, ANALYTICS_ACCOUNT_ID: accountId, ANALYTICS_READ_TOKEN: token } = env
-  if (!username?.trim() || username.includes(':') || !password?.trim()) return new Response('Not found', { status: 404, headers })
-  if (!authorize(request, username, password)) {
+  if (!authorize(request)) {
     return new Response('Sign in to view usage analytics.', { status: 401, headers: { ...headers, 'WWW-Authenticate': 'Basic realm="DispatchReady analytics", charset="UTF-8"' } })
   }
   if (request.method !== 'GET') return new Response(null, { status: 405, headers: { ...headers, Allow: 'GET' } })
-  if (!accountId || !/^[0-9a-f]{32}$/i.test(accountId) || !token) {
-    return new Response('Analytics credentials are missing or invalid.', { status: 503, headers })
+
+  const { ANALYTICS_ACCOUNT_ID: accountId, ANALYTICS_READ_TOKEN: token } = env
+  if (!accountId?.trim() || !/^[0-9a-f]{32}$/i.test(accountId)) {
+    return new Response(
+      'Analytics account ID is missing or invalid. Set ANALYTICS_ACCOUNT_ID to the 32-character hex Cloudflare account ID that owns the dispatchready_funnel dataset.',
+      { status: 503, headers },
+    )
+  }
+  if (!token?.trim()) {
+    return new Response(
+      'Analytics read token is missing. Set ANALYTICS_READ_TOKEN to a Cloudflare API token limited to that account with Account Analytics: Read.',
+      { status: 503, headers },
+    )
   }
 
   const rangeParam = new URL(request.url).searchParams.get('days')
