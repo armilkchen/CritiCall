@@ -12,6 +12,7 @@ const publicRoutes = [
   { path: '/criticall-multitasking-test', priority: 0.8, changeFrequency: 'weekly', lastModified: '2026-10-23T09:30:00.000Z' },
   { path: '/audio-data-entry-practice', priority: 0.8, changeFrequency: 'weekly', lastModified: '2026-10-23T09:44:00.000Z' },
   { path: '/criticall-practice-test-pdf', priority: 0.8, changeFrequency: 'weekly', lastModified: '2026-11-02T02:55:00.000Z' },
+  { path: '/wpm-calculator', priority: 0.8, changeFrequency: 'weekly', lastModified: '2026-11-18' },
 ] as const
 
 export default function sitemap(): MetadataRoute.Sitemap {

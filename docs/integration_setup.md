@@ -49,14 +49,11 @@ checks on the deployed preview.
 
 ### Administrator sign-in
 
-HTTP Basic authentication is hardcoded in the Worker. The username is always `admin`. The plaintext password is stored only in the git-ignored local file [`docs/analytics_admin_credentials.local.md`](./analytics_admin_credentials.local.md) (generate or refresh it on the machine that needs it). The Worker ships a SHA-256 verifier of UTF-8 `admin:<password>` and never needs `ANALYTICS_ADMIN_USERNAME` / `ANALYTICS_ADMIN_PASSWORD` environment variables.
+Open `/admin/analytics` and sign in as `admin` with the password in the git-ignored [local credentials file](./analytics_admin_credentials.local.md).
 
-### Cloudflare query secrets (required for data)
+### Reading statistics
 
-Set these Cloudflare Worker secrets (or put them in a git-ignored `.dev.vars` for a local Worker preview). They stay server-side and are never exposed to the browser:
-
-- `ANALYTICS_ACCOUNT_ID` — the 32-character hex Cloudflare account ID that owns the dataset. A missing or malformed value returns **503** after a successful admin sign-in.
-- `ANALYTICS_READ_TOKEN` — an API token limited to that account with **Account Analytics: Read**. A missing token returns a separate **503** after sign-in.
+The `ANALYTICS_SQL` binding in `wrangler.jsonc` reads the existing dataset using the Worker's account. The dashboard requires only the administrator credentials. Deploy with the repository's locked dependencies so the build includes the binding.
 
 Unauthenticated requests receive **401** and do not query Analytics Engine. After deployment, sign in as `admin` with the local credential password, open a public page in a separate browser, and finish a drill. Check that the page view and training events appear after ingestion. New page views and daily browser estimates start at rollout. The dashboard groups dates in UTC and only includes browsers with a daily identifier in unique counts.
 

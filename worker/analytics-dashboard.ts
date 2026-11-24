@@ -1,10 +1,5 @@
 import { createHash, timingSafeEqual } from 'node:crypto'
 
-type AnalyticsSecrets = {
-  ANALYTICS_ACCOUNT_ID?: string
-  ANALYTICS_READ_TOKEN?: string
-}
-
 type DailyRow = { day: string; browsers: number; total: number }
 type EventRow = { event: string; path: string; drill: string; source: string; action: string; total: number }
 
@@ -48,18 +43,6 @@ function authorize(request: Request) {
   } catch {
     return false
   }
-}
-
-async function query<T>(accountId: string, token: string, sql: string) {
-  const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/analytics_engine/sql`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'text/plain' },
-    body: sql,
-    signal: AbortSignal.timeout(10_000),
-  })
-  if (!response.ok) throw new Error(`Analytics SQL returned ${response.status}`)
-  const result = await response.json<{ data: T[] }>()
-  return result.data
 }
 
 function conversionTables(events: EventRow[]) {
@@ -163,41 +146,28 @@ ${conversionTables(events)}
 </main></html>`
 }
 
-export async function analyticsDashboard(request: Request, env: Env & AnalyticsSecrets) {
+export async function analyticsDashboard(request: Request, env: Env) {
   if (!authorize(request)) {
     return new Response('Sign in to view usage analytics.', { status: 401, headers: { ...headers, 'WWW-Authenticate': 'Basic realm="DispatchReady analytics", charset="UTF-8"' } })
   }
   if (request.method !== 'GET') return new Response(null, { status: 405, headers: { ...headers, Allow: 'GET' } })
 
-  const { ANALYTICS_ACCOUNT_ID: accountId, ANALYTICS_READ_TOKEN: token } = env
-  if (!accountId?.trim() || !/^[0-9a-f]{32}$/i.test(accountId)) {
-    return new Response(
-      'Analytics account ID is missing or invalid. Set ANALYTICS_ACCOUNT_ID to the 32-character hex Cloudflare account ID that owns the dispatchready_funnel dataset.',
-      { status: 503, headers },
-    )
-  }
-  if (!token?.trim()) {
-    return new Response(
-      'Analytics read token is missing. Set ANALYTICS_READ_TOKEN to a Cloudflare API token limited to that account with Account Analytics: Read.',
-      { status: 503, headers },
-    )
-  }
-
   const rangeParam = new URL(request.url).searchParams.get('days')
   const days = rangeParam === '1' ? 1 : rangeParam === '28' ? 28 : 7
   const now = Date.now()
   const dates = Array.from({ length: days }, (_, index) => new Date(now - (days - index - 1) * 86_400_000).toISOString().slice(0, 10))
-  const range = `timestamp >= toDateTime('${dates[0]} 00:00:00', 'Etc/UTC')`
+  const params = { start: `${dates[0]}T00:00:00Z` }
+  const range = 'FROM events.analyticsEngine.dispatchready_funnel WHERE timestamp >= $start'
   const date = "formatDateTime(timestamp, '%Y-%m-%d', 'Etc/UTC')"
-  const dailyColumns = `${date} AS day, count(DISTINCT blob5) - max(if(blob5 = '', 1, 0)) AS browsers, sum(_sample_interval) AS total`
+  const dailyColumns = `${date} AS day, count(DISTINCT blob5) - if(countIf(blob5 = '') > 0, 1, 0) AS browsers, count(*) AS total`
 
   try {
     const [visits, active, events] = await Promise.all([
-      query<DailyRow>(accountId, token, `SELECT ${dailyColumns} FROM dispatchready_funnel WHERE ${range} AND blob1 = 'page_view' GROUP BY day`),
-      query<DailyRow>(accountId, token, `SELECT ${dailyColumns} FROM dispatchready_funnel WHERE ${range} AND blob1 IN (${trainingEvents}) AND blob5 != '' AND (blob1 != 'drill_start' OR blob2 != '/train') GROUP BY day`),
-      query<EventRow>(accountId, token, `SELECT blob1 AS event, blob2 AS path, blob3 AS drill, blob6 AS source, blob7 AS action, sum(_sample_interval) AS total FROM dispatchready_funnel WHERE ${range} AND blob1 IN (${trainingEvents}, 'page_view', 'visit_entry', 'result_action', 'pdf_download_click', 'wpm_calculation', 'wpm_typing_test_click') GROUP BY event, path, drill, source, action`),
+      env.ANALYTICS_SQL.query<DailyRow>({ query: `SELECT ${dailyColumns} ${range} AND blob1 = 'page_view' GROUP BY day`, params }),
+      env.ANALYTICS_SQL.query<DailyRow>({ query: `SELECT ${dailyColumns} ${range} AND blob1 IN (${trainingEvents}) AND blob5 != '' AND (blob1 != 'drill_start' OR blob2 != '/train') GROUP BY day`, params }),
+      env.ANALYTICS_SQL.query<EventRow>({ query: `SELECT blob1 AS event, blob2 AS path, blob3 AS drill, blob6 AS source, blob7 AS action, count(*) AS total ${range} AND blob1 IN (${trainingEvents}, 'page_view', 'visit_entry', 'result_action', 'pdf_download_click', 'wpm_calculation', 'wpm_typing_test_click') GROUP BY event, path, drill, source, action`, params }),
     ])
-    return new Response(renderDashboard(days, dates, visits, active, events), { headers: { ...headers, 'Content-Type': 'text/html; charset=utf-8' } })
+    return new Response(renderDashboard(days, dates, visits.data, active.data, events.data), { headers: { ...headers, 'Content-Type': 'text/html; charset=utf-8' } })
   } catch (error) {
     console.error('Analytics dashboard query failed', error instanceof Error ? error.message : 'Unknown error')
     return new Response('Usage analytics is temporarily unavailable.', { status: 502, headers })

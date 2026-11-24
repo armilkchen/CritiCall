@@ -59,6 +59,10 @@ export function Modules() {
             <Link href="/dispatcher-typing-test" className="font-medium text-foreground underline decoration-primary/40 underline-offset-4 hover:decoration-primary">
               911 dispatcher typing test
             </Link>
+            . Already have your typing count and time? Use the{' '}
+            <Link href="/wpm-calculator" className="font-medium text-foreground underline decoration-primary/40 underline-offset-4 hover:decoration-primary">
+              WPM calculator
+            </Link>
             .
           </p>
         </div>
